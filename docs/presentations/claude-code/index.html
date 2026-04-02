@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code — 제대로 이해하고 제대로 쓰기</title>
+
+  <!-- Reveal.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+  <!-- Code highlight -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+
+  <style>
+    /* ── 커스텀 테마 ── */
+    :root {
+      --accent: #D97757;
+      --accent-light: #f0a080;
+      --bg-dark: #1a1a2e;
+      --bg-card: #16213e;
+      --text-main: #e8e8f0;
+      --text-muted: #9999bb;
+      --border: #2a2a4a;
+    }
+
+    .reveal {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      font-size: 36px;
+      color: var(--text-main);
+    }
+
+    .reveal .slides section {
+      background: var(--bg-dark);
+      height: 100%;
+      box-sizing: border-box;
+      padding: 40px 60px;
+    }
+
+    /* 제목 스타일 */
+    .reveal h1 { font-size: 2em; color: var(--accent); margin-bottom: 0.3em; }
+    .reveal h2 { font-size: 1.4em; color: var(--accent-light); margin-bottom: 0.5em; }
+    .reveal h3 { font-size: 1.1em; color: var(--text-muted); font-weight: 400; }
+
+    /* 강조 */
+    .reveal .accent { color: var(--accent); font-weight: 700; }
+    .reveal .muted { color: var(--text-muted); font-size: 0.8em; }
+
+    /* 카드 */
+    .reveal .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 28px;
+      margin: 12px 0;
+    }
+    .reveal .card-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .reveal .card-grid-2 { grid-template-columns: 1fr 1fr; }
+    .reveal .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    /* 태그 뱃지 */
+    .reveal .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      font-size: 0.5em;
+      padding: 3px 10px;
+      border-radius: 20px;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    /* 목록 */
+    .reveal ul { list-style: none; padding: 0; }
+    .reveal ul li { padding: 6px 0; padding-left: 1.4em; position: relative; }
+    .reveal ul li::before { content: "▸"; color: var(--accent); position: absolute; left: 0; }
+
+    /* 다이어그램 컨테이너 */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 섹션 타이틀 슬라이드 */
+    .section-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+    }
+    .section-title .section-num {
+      font-size: 5em;
+      color: var(--accent);
+      opacity: 0.15;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    /* 코드 블록 */
+    .reveal pre {
+      box-shadow: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.7em;
+    }
+
+    /* 구분선 */
+    .reveal .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* 플레이스홀더 슬라이드 */
+    .placeholder-slide {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      text-align: center;
+      opacity: 0.7;
+    }
+
+    /* 하단 슬라이드 번호 */
+    .reveal .slide-number {
+      color: var(--text-muted) !important;
+      font-size: 0.5em !important;
+    }
+
+    /* Mermaid SVG — overflow 방지, 자연 크기 유지 */
+    .mermaid svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    /* 다이어그램 컨테이너 */
+    .mermaid-wrap {
+      min-height: 200px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ═══════════════════════════════════════
+         SECTION 1: 도입부 (슬라이드 1~3)
+    ═══════════════════════════════════════ -->
+
+    <!-- ── 슬라이드 1: 타이틀 ── -->
+<section>
+  <div style="display:flex; flex-direction:column; justify-content:center; height:100%; gap:24px;">
+    <div>
+      <p class="muted" style="font-size:0.6em; letter-spacing:0.2em; text-transform:uppercase;">Claude Code Deep Dive</p>
+      <h1 style="font-size:1.8em; line-height:1.2;">제대로 이해하고<br>제대로 쓰기</h1>
+    </div>
+    <div class="card" style="max-width:600px;">
+      <p style="margin:0; font-size:0.75em; color:var(--text-muted);">
+        "AI가 터미널 안으로 들어왔다"<br>
+        단순 자동완성이 아닌, 자율 실행 에이전트
+      </p>
+    </div>
+    <p class="muted" style="font-size:0.55em;">CLI 도구 &nbsp;·&nbsp; 자율 에이전트 &nbsp;·&nbsp; Anthropic 공식</p>
+  </div>
+</section>
+
+<!-- ── 슬라이드 2: 목차 ── -->
+<section>
+  <h2>오늘 다룰 것들</h2>
+  <div class="card-grid card-grid-2" style="margin-top:24px; font-size:0.75em;">
+    <div class="card">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">① LLM 연동</p>
+      <p style="color:var(--text-muted); margin:0;">어떻게 동작하는가<br>컨텍스트 · Tool Call · CLAUDE.md</p>
+    </div>
+    <div class="card">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">② 도구 (Tools)</p>
+      <p style="color:var(--text-muted); margin:0;">LLM의 손발<br>파일 · 실행 · 검색 · 권한</p>
+    </div>
+    <div class="card">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">③ 에이전트</p>
+      <p style="color:var(--text-muted); margin:0;">실행 루프<br>멀티에이전트 구조</p>
+    </div>
+    <div class="card">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">④ 스킬 (Skills)</p>
+      <p style="color:var(--text-muted); margin:0;">워크플로우 자동화<br>구조 · 호출 · 만들기</p>
+    </div>
+    <div class="card" style="grid-column: span 2;">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">⑤ 실전 팁 &amp; 고려사항</p>
+      <p style="color:var(--text-muted); margin:0;">컨텍스트 관리 · 잘 쓰는 법 · 한계 · 도입 시 고려사항</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 3: 흔한 오해 ── -->
+<section>
+  <h2>흔한 오해</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:16px; font-size:0.8em;">
+    <div class="card" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:center;">
+      <div style="text-align:center; opacity:0.5;">
+        <p style="font-size:1.4em; margin:0;">💬</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">GitHub Copilot처럼<br><strong>자동완성</strong>이겠지</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:1.4em; margin:0;">⚡</p>
+        <p style="margin:4px 0 0;"><strong>실행 루프</strong>가 있는<br>자율 에이전트</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:center;">
+      <div style="text-align:center; opacity:0.5;">
+        <p style="font-size:1.4em; margin:0;">🤖</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">채팅창에서<br><strong>대화</strong>만 하는 것</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:1.4em; margin:0;">🛠</p>
+        <p style="margin:4px 0 0;">파일을 읽고, 코드를 수정하고,<br><strong>테스트를 실행</strong>한다</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:center;">
+      <div style="text-align:center; opacity:0.5;">
+        <p style="font-size:1.4em; margin:0;">🪄</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">그냥 쓰면<br><strong>알아서</strong> 잘 된다</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:1.4em; margin:0;">🎯</p>
+        <p style="margin:4px 0 0;">원리를 알수록<br><strong>더 잘 쓸 수 있다</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- ═══════════════════════════════════════
+         SECTION 2: LLM 연동 (슬라이드 4~8)
+    ═══════════════════════════════════════ -->
+
+    <!-- ── 슬라이드 4: 기본 구조 ── -->
+<section>
+  <h2>기본 구조</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; align-items:center; gap:0; font-size:0.78em;">
+    <!-- 사용자 -->
+    <div style="border:2px solid var(--accent); border-radius:8px; padding:12px 40px; background:var(--bg-card); text-align:center; min-width:220px;">
+      <p style="margin:0; font-size:1em;">👤 사용자</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.8em;">터미널 입력</p>
+    </div>
+    <!-- 화살표 -->
+    <div style="display:flex; flex-direction:column; align-items:center; padding:6px 0; color:var(--text-muted); font-size:0.75em;">
+      <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+      <span>명령 / 응답</span>
+      <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+    </div>
+    <!-- Claude Code -->
+    <div style="border:2px solid var(--accent); border-radius:8px; padding:12px 40px; background:var(--accent); text-align:center; min-width:220px;">
+      <p style="margin:0; font-size:1em; color:#fff; font-weight:700;">⚡ Claude Code</p>
+      <p style="margin:4px 0 0; color:rgba(255,255,255,0.8); font-size:0.8em;">CLI 프로세스 (로컬)</p>
+    </div>
+    <!-- 화살표 -->
+    <div style="display:flex; flex-direction:column; align-items:center; padding:6px 0; color:var(--text-muted); font-size:0.75em;">
+      <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+      <span>HTTPS</span>
+      <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+    </div>
+    <!-- Anthropic API -->
+    <div style="border:2px solid #9999bb; border-radius:8px; padding:12px 40px; background:var(--bg-card); text-align:center; min-width:220px;">
+      <p style="margin:0; font-size:1em;">☁️ Anthropic API</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.8em;">클라우드 엔드포인트</p>
+    </div>
+    <!-- 화살표 -->
+    <div style="display:flex; flex-direction:column; align-items:center; padding:6px 0; color:var(--text-muted); font-size:0.75em;">
+      <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+      <span>추론 요청 / 응답</span>
+      <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+    </div>
+    <!-- Claude LLM -->
+    <div style="border:2px solid var(--accent-light); border-radius:8px; padding:12px 40px; background:var(--bg-card); text-align:center; min-width:220px;">
+      <p style="margin:0; font-size:1em;">🧠 Claude LLM</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.8em;">추론 엔진</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 5: 컨텍스트 윈도우 ── -->
+<section>
+  <h2>컨텍스트 윈도우</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">LLM의 "작업 메모리"</p>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <p style="margin:0;"><span class="accent">대화 전체</span>가 매 요청마다 LLM에게 전달됩니다</p>
+      <p style="margin:6px 0 0; color:var(--text-muted); font-size:0.85em;">사용자 메시지 + AI 응답 + 도구 실행 결과 — 모두 포함</p>
+    </div>
+    <div class="card" style="border-left:4px solid #f0a080;">
+      <p style="margin:0;"><span style="color:#f0a080; font-weight:700;">한계:</span> Claude는 최대 200K 토큰</p>
+      <p style="margin:6px 0 0; color:var(--text-muted); font-size:0.85em;">대화가 길어지면 → 오래된 내용 압축 → 품질 저하</p>
+    </div>
+    <div class="card" style="border-left:4px solid #9999bb;">
+      <p style="margin:0; color:var(--text-muted);">대화가 길어질수록 주의할 것</p>
+      <div style="margin-top:8px; display:flex; gap:16px; flex-wrap:wrap;">
+        <span style="background:var(--bg-dark); padding:4px 12px; border-radius:20px; font-size:0.8em;"><code>/clear</code> — 컨텍스트 초기화</span>
+        <span style="background:var(--bg-dark); padding:4px 12px; border-radius:20px; font-size:0.8em;">작업 단위를 작게</span>
+        <span style="background:var(--bg-dark); padding:4px 12px; border-radius:20px; font-size:0.8em;">핵심은 CLAUDE.md에</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 6: Tool Call 개념 ── -->
+<section>
+  <h2>Tool Call — LLM이 행동하는 방법</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card">
+      <p style="margin:0 0 8px; color:var(--text-muted);">LLM만 있다면...</p>
+      <p style="margin:0;">텍스트 입력 → <span style="opacity:0.5;">🧠 추론</span> → 텍스트 출력</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">파일을 읽거나, 코드를 실행하거나, 무언가를 저장할 수 없다</p>
+    </div>
+    <div class="card" style="border:1px solid var(--accent);">
+      <p style="margin:0 0 8px; color:var(--accent);">Tool Call이 있다면...</p>
+      <p style="margin:0;">LLM이 <strong>"이 도구를 이 인자로 실행해줘"</strong>라는 JSON을 출력</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">Claude Code가 실제로 실행하고 결과를 다시 LLM에게 전달</p>
+    </div>
+    <pre style="font-size:0.55em; margin:0;"><code class="json">{
+  "type": "tool_use",
+  "name": "Read",
+  "input": { "file_path": "/src/auth.ts", "limit": 50 }
+}</code></pre>
+  </div>
+</section>
+
+<!-- ── 슬라이드 7: Tool Call 흐름도 ── -->
+<section>
+  <h2>Tool Call 실행 사이클</h2>
+  <div class="mermaid-wrap" style="margin-top:16px;">
+    <div class="mermaid">
+sequenceDiagram
+    participant U as 사용자
+    participant CC as Claude Code
+    participant LLM as LLM
+    participant T as 도구
+
+    U->>CC: "auth.ts 리뷰해줘"
+    CC->>LLM: 메시지 전달
+    LLM->>CC: tool_use: Read(auth.ts)
+    CC->>T: 파일 읽기 실행
+    T->>CC: 파일 내용 반환
+    CC->>LLM: tool_result 전달
+    LLM->>CC: 리뷰 텍스트 생성
+    CC->>U: 최종 응답 출력
+    </div>
+  </div>
+  <p class="muted" style="font-size:0.55em; margin-top:12px; text-align:center;">LLM은 직접 파일을 읽지 않는다 — Claude Code가 실행하고 결과를 전달한다</p>
+</section>
+
+<!-- ── 슬라이드 8: CLAUDE.md ── -->
+<section>
+  <h2>CLAUDE.md</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">프로젝트 컨텍스트를 LLM에게 자동으로 주입하는 파일</p>
+  <div style="margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:0.72em;">
+    <div>
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">어떻게 동작하나?</p>
+        <ul>
+          <li>프로젝트 루트에 <code>CLAUDE.md</code> 생성</li>
+          <li>매 대화 시작 시 자동으로 컨텍스트에 포함</li>
+          <li>LLM이 항상 이 내용을 "기억"한 상태로 시작</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">주로 담는 내용</p>
+        <ul>
+          <li>프로젝트 구조 및 아키텍처</li>
+          <li>팀 코딩 컨벤션</li>
+          <li>자주 쓰는 명령어</li>
+          <li>주의사항 / 하면 안 되는 것</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <pre style="font-size:0.7em; height:100%; margin:0;"><code class="markdown"># Project Context
+
+## Stack
+- Next.js 14 (App Router)
+- Prisma + PostgreSQL
+- Vitest for testing
+
+## Conventions
+- 한국어로 커밋 메시지 작성
+- 테스트 없이 PR 금지
+- .env 파일 절대 커밋 금지
+
+## Commands
+- `pnpm test` — 테스트 실행
+- `pnpm dev` — 개발 서버</code></pre>
+    </div>
+  </div>
+</section>
+
+    <!-- ═══════════════════════════════════════
+         SECTION 3: 도구 (슬라이드 9~14)
+    ═══════════════════════════════════════ -->
+
+    <!-- ── 슬라이드 9: 도구란 무엇인가 ── -->
+<section>
+  <h2>도구(Tools)란?</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:16px; font-size:0.78em;">
+    <div class="card" style="text-align:center; padding:28px;">
+      <p style="font-size:1.4em; margin:0;">🧠 &nbsp;+&nbsp; 🛠</p>
+      <p style="margin:12px 0 0; font-size:1.1em;">LLM <span class="accent">+</span> 도구 = 행동할 수 있는 에이전트</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card" style="opacity:0.5;">
+        <p style="font-weight:700; margin:0 0 6px;">도구 없음</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.85em;">텍스트를 읽고<br>텍스트를 출력할 뿐</p>
+      </div>
+      <div class="card" style="border-color:var(--accent);">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">도구 있음</p>
+        <p style="margin:0; font-size:0.85em;">파일 읽기, 코드 수정,<br>명령 실행, 검색</p>
+      </div>
+    </div>
+    <p class="muted" style="font-size:0.65em; text-align:center; margin:0;">Claude Code에는 수십 가지 도구가 있고, LLM이 필요에 따라 선택해서 호출한다</p>
+  </div>
+</section>
+
+<!-- ── 슬라이드 10: 파일 도구 ── -->
+<section>
+  <h2>파일 도구</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">코드베이스를 읽고 수정하는 핵심 도구들</p>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px; font-size:0.72em;">
+    <div class="card" style="display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:start;">
+      <code style="color:var(--accent); font-size:1.1em;">Read</code>
+      <div>
+        <p style="margin:0;">파일 내용 읽기 (라인 범위 지정 가능)</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">LLM이 코드를 이해하기 위한 첫 번째 단계</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:start;">
+      <code style="color:var(--accent); font-size:1.1em;">Write</code>
+      <div>
+        <p style="margin:0;">파일 생성 / 전체 덮어쓰기</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">새 파일을 만들거나 완전히 새로 쓸 때</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:start;">
+      <code style="color:var(--accent); font-size:1.1em;">Edit</code>
+      <div>
+        <p style="margin:0;">특정 텍스트를 찾아 교체 (정밀 수정)</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">변경된 부분만 diff로 표시 → 리뷰가 쉬움</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:start;">
+      <code style="color:var(--accent); font-size:1.1em;">Glob</code>
+      <div>
+        <p style="margin:0;">파일 패턴으로 경로 검색</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;"><code>**/*.test.ts</code> 처럼 와일드카드 지원</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 11: 실행 도구 ── -->
+<section>
+  <h2>실행 도구 — Bash</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">Bash</p>
+      <p style="margin:0;">모든 쉘 명령을 실행할 수 있는 가장 강력한 도구</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card">
+        <p style="color:var(--text-muted); font-size:0.85em; margin:0 0 8px;">주요 활용</p>
+        <ul style="font-size:0.85em;">
+          <li>테스트 실행 (<code>npm test</code>)</li>
+          <li>git 조작</li>
+          <li>빌드 / 린트</li>
+          <li>패키지 설치</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:#f0a080;">
+        <p style="color:#f0a080; font-size:0.85em; margin:0 0 8px;">⚠️ 주의</p>
+        <p style="font-size:0.85em; margin:0;">가장 영향력이 큰 도구<br>실행 전 사용자 승인 필요<br>권한 범위 설정이 중요</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 12: 검색 도구 ── -->
+<section>
+  <h2>검색 도구 — Grep</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">Grep</p>
+      <p style="margin:0;">코드베이스에서 패턴을 검색 (ripgrep 기반)</p>
+      <p style="margin:6px 0 0; color:var(--text-muted); font-size:0.85em;">정규식 지원, 파일 타입 필터, 컨텍스트 라인 수 설정</p>
+    </div>
+    <div class="card">
+      <p style="color:var(--text-muted); font-size:0.85em; margin:0 0 8px;">LLM이 Grep을 쓰는 이유</p>
+      <p style="margin:0;">전체 파일을 읽지 않고 <span class="accent">필요한 부분만</span> 찾아서<br>컨텍스트 윈도우를 효율적으로 사용</p>
+    </div>
+    <pre style="font-size:0.6em; margin:0;"><code class="json">// LLM의 tool_use 예시
+{ "name": "Grep", "input": { "pattern": "useAuth", "type": "ts", "output_mode": "files_with_matches" } }</code></pre>
+  </div>
+</section>
+
+<!-- ── 슬라이드 13: 도구 권한 모델 ── -->
+<section>
+  <h2>도구 권한 모델</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">모든 도구가 자동으로 실행되지는 않는다</p>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card" style="border-color:#4ade80;">
+        <p style="color:#4ade80; font-weight:700; margin:0 0 8px;">✓ 자동 허용</p>
+        <ul style="font-size:0.85em;">
+          <li>Read, Grep, Glob</li>
+          <li>읽기 전용 도구들</li>
+          <li>부작용 없는 작업</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:#f97316;">
+        <p style="color:#f97316; font-weight:700; margin:0 0 8px;">⚡ 사용자 승인 필요</p>
+        <ul style="font-size:0.85em;">
+          <li>Bash (명령 실행)</li>
+          <li>Write, Edit (파일 수정)</li>
+          <li>외부 시스템 접근</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <p style="margin:0; font-size:0.85em;"><span class="accent">설정으로 조절 가능:</span> allowedTools, autoApprove 설정으로<br>신뢰하는 도구는 자동 허용, 민감한 도구는 항상 확인</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 14: 도구가 없다면 ── -->
+<section>
+  <h2>도구가 없다면?</h2>
+  <div style="margin-top:24px; display:flex; flex-direction:column; gap:16px; font-size:0.8em; text-align:center;">
+    <div class="card" style="padding:32px;">
+      <p style="font-size:1.6em; margin:0;">🧠</p>
+      <p style="margin:12px 0 0; font-size:1.1em;">"LLM은 훌륭한 <span class="accent">사고 엔진</span>이지만<br>행동 없이는 <span style="opacity:0.5;">텍스트 생성기</span>에 불과하다"</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center;">
+      <div class="card">
+        <p style="color:var(--text-muted); margin:0;">LLM만</p>
+        <p style="margin:6px 0 0;">읽기 ✓<br>쓰기 ✗<br>실행 ✗</p>
+      </div>
+      <div style="color:var(--accent); font-size:1.5em;">+🛠</div>
+      <div class="card" style="border-color:var(--accent);">
+        <p style="color:var(--accent); margin:0;">에이전트</p>
+        <p style="margin:6px 0 0;">읽기 ✓<br>쓰기 ✓<br>실행 ✓</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- ═══════════════════════════════════════
+         SECTION 4: 에이전트 (슬라이드 15~20)
+    ═══════════════════════════════════════ -->
+
+<!-- ── 슬라이드 15: 에이전트란 ── -->
+<section>
+  <h2>에이전트(Agent)란?</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:16px; font-size:0.78em;">
+    <div class="card" style="text-align:center; padding:28px; border-color:var(--accent);">
+      <p style="font-size:1.3em; margin:0;"><span class="accent">도구</span> + <span class="accent">실행 루프</span> = 에이전트</p>
+      <p style="margin:10px 0 0; color:var(--text-muted);">목표가 달성될 때까지 스스로 반복한다</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card" style="opacity:0.5;">
+        <p style="font-weight:700; margin:0 0 6px;">단순 LLM 호출</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.85em;">질문 1개 → 응답 1개<br>끝</p>
+      </div>
+      <div class="card" style="border-color:var(--accent);">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">에이전트</p>
+        <p style="margin:0; font-size:0.85em;">목표 확인 → 계획 → 실행<br>→ 결과 확인 → 다음 단계 → ...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 16: 에이전트 실행 루프 ── -->
+<section>
+  <h2>에이전트 실행 루프</h2>
+  <div style="margin-top:16px; display:flex; gap:24px; align-items:flex-start; justify-content:center; font-size:0.75em;">
+    <!-- 왼쪽: 순환 루프 다이어그램 -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:0; min-width:200px;">
+      <!-- 목표 수신 -->
+      <div style="background:var(--accent); border-radius:8px; padding:10px 24px; text-align:center; color:#fff; font-weight:700; width:180px;">
+        <p style="margin:0;">목표 수신</p>
+      </div>
+      <div style="width:2px; height:14px; background:var(--text-muted);"></div>
+      <!-- Think -->
+      <div style="border:2px solid var(--accent); border-radius:8px; padding:10px 12px; text-align:center; background:var(--bg-card); width:180px;">
+        <p style="margin:0; font-weight:700; color:var(--accent);">Think</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">상황 파악, 다음 행동 결정</p>
+      </div>
+      <div style="width:2px; height:14px; background:var(--text-muted);"></div>
+      <!-- Act -->
+      <div style="border:2px solid var(--accent); border-radius:8px; padding:10px 12px; text-align:center; background:var(--bg-card); width:180px;">
+        <p style="margin:0; font-weight:700; color:var(--accent);">Act</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">도구 호출 실행</p>
+      </div>
+      <div style="width:2px; height:14px; background:var(--text-muted);"></div>
+      <!-- Observe -->
+      <div style="border:2px solid var(--accent); border-radius:8px; padding:10px 12px; text-align:center; background:var(--bg-card); width:180px;">
+        <p style="margin:0; font-weight:700; color:var(--accent);">Observe</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">결과 확인</p>
+      </div>
+      <div style="width:2px; height:14px; background:var(--text-muted);"></div>
+      <!-- 판단 -->
+      <div style="border:2px solid #9999bb; border-radius:8px; padding:10px 12px; text-align:center; background:var(--bg-card); width:180px;">
+        <p style="margin:0; color:var(--text-muted);">목표 달성?</p>
+      </div>
+      <!-- 두 화살표 -->
+      <div style="display:flex; gap:40px; margin-top:8px; width:180px; justify-content:space-between; font-size:0.85em; color:var(--text-muted);">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span>아직</span>
+          <span style="color:var(--accent);">↑ Think 반복</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span>완료</span>
+          <div style="width:2px; height:14px; background:#4ade80; margin:4px auto;"></div>
+          <div style="background:#4ade80; border-radius:6px; padding:4px 8px; color:#000; font-weight:700; white-space:nowrap;">완료 보고</div>
+        </div>
+      </div>
+    </div>
+    <!-- 오른쪽: 설명 -->
+    <div style="display:flex; flex-direction:column; gap:12px; max-width:240px; padding-top:8px;">
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <p style="margin:0; font-weight:700; color:var(--accent);">Think</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">현재 상태를 파악하고 다음에 무엇을 해야 할지 결정</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <p style="margin:0; font-weight:700; color:var(--accent);">Act</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">파일 읽기, 코드 수정, 명령 실행 등 도구 호출</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <p style="margin:0; font-weight:700; color:var(--accent);">Observe</p>
+        <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">실행 결과를 확인하고 다음 Think 단계로 피드백</p>
+      </div>
+    </div>
+  </div>
+  <p class="muted" style="font-size:0.55em; text-align:center; margin-top:12px;">이 루프 덕분에 Claude Code는 "버그 수정해줘" 한 마디로 여러 파일을 탐색하고 수정하고 테스트까지 실행할 수 있다</p>
+</section>
+
+<!-- ── 슬라이드 17: 멀티에이전트란 ── -->
+<section>
+  <h2>멀티에이전트(Multi-Agent)란?</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <p style="margin:0;"><span class="accent">에이전트가 다른 에이전트를 도구로 호출</span>하는 구조</p>
+      <p style="margin:6px 0 0; color:var(--text-muted); font-size:0.85em;">Claude Code의 <code>Agent</code> 도구를 통해 서브에이전트를 생성·실행</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">Orchestrator</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.85em;">전체 목표를 이해하고<br>하위 작업을 분배</p>
+      </div>
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">Subagent</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.85em;">하나의 독립적인 작업에<br>집중해서 실행</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 18: 멀티에이전트 구조도 ── -->
+<section>
+  <h2>멀티에이전트 구조</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; align-items:center; gap:0; font-size:0.75em;">
+    <!-- Orchestrator -->
+    <div style="background:var(--accent); border-radius:8px; padding:12px 32px; text-align:center; color:#fff; font-weight:700; min-width:220px;">
+      <p style="margin:0; font-size:1.05em;">Orchestrator</p>
+      <p style="margin:4px 0 0; font-size:0.82em; opacity:0.85;">전체 작업 조율</p>
+    </div>
+    <!-- 아래 화살표 3갈래 -->
+    <div style="display:flex; gap:32px; margin-top:10px;">
+      <!-- 탐색 -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+        <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+        <div style="border:2px solid #9999bb; border-radius:8px; padding:10px 14px; text-align:center; background:var(--bg-card); min-width:130px;">
+          <p style="margin:0; font-weight:700; color:var(--text-main);">탐색 에이전트</p>
+          <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">코드베이스 분석</p>
+        </div>
+        <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+      </div>
+      <!-- 구현 -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+        <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+        <div style="border:2px solid #9999bb; border-radius:8px; padding:10px 14px; text-align:center; background:var(--bg-card); min-width:130px;">
+          <p style="margin:0; font-weight:700; color:var(--text-main);">구현 에이전트</p>
+          <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">기능 작성</p>
+        </div>
+        <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+      </div>
+      <!-- 검증 -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+        <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+        <div style="border:2px solid #9999bb; border-radius:8px; padding:10px 14px; text-align:center; background:var(--bg-card); min-width:130px;">
+          <p style="margin:0; font-weight:700; color:var(--text-main);">검증 에이전트</p>
+          <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">테스트 실행</p>
+        </div>
+        <div style="width:2px; height:16px; background:var(--text-muted);"></div>
+      </div>
+    </div>
+    <!-- 결과 취합 -->
+    <div style="border:2px solid #9999bb; border-radius:8px; padding:12px 32px; text-align:center; background:var(--bg-card); min-width:220px;">
+      <p style="margin:0; font-weight:700; color:var(--text-main);">결과 취합</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">→ Orchestrator에 반환</p>
+    </div>
+  </div>
+  <p class="muted" style="font-size:0.55em; text-align:center; margin-top:12px;">각 서브에이전트는 독립적인 컨텍스트 윈도우를 가진다 → 서로 간섭 없이 병렬 실행 가능</p>
+</section>
+
+<!-- ── 슬라이드 19: 왜 멀티에이전트인가 ── -->
+<section>
+  <h2>왜 멀티에이전트인가?</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="display:grid; grid-template-columns:48px 1fr; gap:16px; align-items:start;">
+      <div style="font-size:1.8em; text-align:center;">📦</div>
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">컨텍스트 분리</p>
+        <p style="color:var(--text-muted); margin:0;">하나의 긴 대화 대신, 각 에이전트가 자신의 작업에만 집중<br>컨텍스트 오염 없이 품질 유지</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:48px 1fr; gap:16px; align-items:start;">
+      <div style="font-size:1.8em; text-align:center;">⚡</div>
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">병렬화</p>
+        <p style="color:var(--text-muted); margin:0;">독립적인 작업을 동시에 실행<br>전체 처리 시간 대폭 단축</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:48px 1fr; gap:16px; align-items:start;">
+      <div style="font-size:1.8em; text-align:center;">🎯</div>
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">전문화</p>
+        <p style="color:var(--text-muted); margin:0;">탐색 전용, 구현 전용, 검증 전용으로 역할 분리<br>각자 최적의 도구와 지시문을 가질 수 있음</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 20: 멀티에이전트 실전 패턴 ── -->
+<section>
+  <h2>멀티에이전트 실전 패턴</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">"새 기능 추가해줘"를 받았을 때</p>
+  <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px; font-size:0.7em;">
+    <div class="card" style="display:grid; grid-template-columns:32px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-weight:700; font-size:1.1em;">①</span>
+      <div>
+        <p style="font-weight:700; margin:0;">Explore 에이전트</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">관련 파일 탐색, 기존 패턴 파악, 영향 범위 분석</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:32px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-weight:700; font-size:1.1em;">②</span>
+      <div>
+        <p style="font-weight:700; margin:0;">Plan 에이전트</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">① 결과를 바탕으로 구현 계획 작성</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:32px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-weight:700; font-size:1.1em;">③</span>
+      <div>
+        <p style="font-weight:700; margin:0;">Implement 에이전트</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">계획에 따라 코드 작성, 단위 테스트 포함</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:32px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-weight:700; font-size:1.1em;">④</span>
+      <div>
+        <p style="font-weight:700; margin:0;">Review 에이전트</p>
+        <p style="color:var(--text-muted); margin:4px 0 0;">구현된 코드 검토, 개선 사항 피드백</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- ═══════════════════════════════════════
+         SECTION 5: 스킬 (슬라이드 21~25)
+    ═══════════════════════════════════════ -->
+
+<!-- ── 슬라이드 21: 스킬이란 ── -->
+<section>
+  <h2>스킬(Skills)이란?</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card" style="text-align:center; padding:28px; border-color:var(--accent);">
+      <p style="font-size:1.1em; margin:0;">반복 가능한 워크플로우를 <span class="accent">마크다운 파일</span>로 캡처한 것</p>
+      <p style="margin:8px 0 0; color:var(--text-muted);">"이 상황에서는 이렇게 행동해라"를 LLM에게 지시하는 파일</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card" style="opacity:0.5;">
+        <p style="font-weight:700; margin:0 0 6px;">단순 프롬프트 저장</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.85em;">복붙해서 쓰는<br>텍스트 조각</p>
+      </div>
+      <div class="card" style="border-color:var(--accent);">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">스킬</p>
+        <p style="margin:0; font-size:0.85em;">단계별 절차, 체크리스트,<br>분기 조건을 가진 워크플로우</p>
+      </div>
+    </div>
+    <p class="muted" style="font-size:0.65em; text-align:center; margin:0;">플러그인/확장처럼 팀 전체가 공유하고 재사용할 수 있다</p>
+  </div>
+</section>
+
+<!-- ── 슬라이드 22: 스킬 구조 ── -->
+<section>
+  <h2>스킬의 구조</h2>
+  <div style="margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:0.72em;">
+    <div>
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">파일 형태</p>
+        <ul>
+          <li>마크다운 (<code>.md</code>) 파일</li>
+          <li>YAML frontmatter + 본문</li>
+          <li><code>.claude/skills/</code> 또는 플러그인 디렉토리</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">frontmatter 주요 필드</p>
+        <ul>
+          <li><code>name</code> — 스킬 이름</li>
+          <li><code>description</code> — 언제 쓰는지</li>
+          <li><code>trigger</code> — 자동 활성화 조건</li>
+        </ul>
+      </div>
+    </div>
+    <pre style="font-size:0.65em; margin:0;"><code class="markdown">---
+name: tdd
+description: |
+  테스트 주도 개발.
+  기능 구현 전에 항상 사용.
+---
+
+# TDD 워크플로우
+
+## 규칙
+1. 먼저 실패하는 테스트를 작성
+2. 테스트가 실패하는지 확인
+3. 통과하는 최소한의 코드 작성
+4. 테스트 통과 확인
+5. 리팩토링 후 커밋
+
+## 절대 하지 말 것
+- 테스트 없이 구현 코드 작성
+- 구현 후 테스트 추가
+</code></pre>
+  </div>
+</section>
+
+<!-- ── 슬라이드 23: 스킬 예시 ── -->
+<section>
+  <h2>스킬 예시</h2>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px; font-size:0.72em;">
+    <div class="card" style="display:grid; grid-template-columns:140px 1fr; gap:16px;">
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0;">TDD 스킬</p>
+        <p style="color:var(--text-muted); font-size:0.85em; margin:4px 0 0;">기능 구현 시</p>
+      </div>
+      <p style="margin:0; color:var(--text-muted);">테스트 먼저 → 실패 확인 → 구현 → 통과 확인 → 커밋 순서 강제. "구현 먼저 하고 테스트 추가"를 막는다</p>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:140px 1fr; gap:16px;">
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0;">디버깅 스킬</p>
+        <p style="color:var(--text-muted); font-size:0.85em; margin:4px 0 0;">버그 발생 시</p>
+      </div>
+      <p style="margin:0; color:var(--text-muted);">증상 파악 → 가설 수립 → 검증 → 수정 → 재발 방지 순서로. 즉흥적 수정 대신 체계적 접근 강제</p>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:140px 1fr; gap:16px;">
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0;">브레인스토밍 스킬</p>
+        <p style="color:var(--text-muted); font-size:0.85em; margin:4px 0 0;">새 기능 설계 시</p>
+      </div>
+      <p style="margin:0; color:var(--text-muted);">질문 하나씩 → 요구사항 명확화 → 설계 제안 → 승인 후 구현. 코드 먼저 짜는 것을 막는다</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 24: 스킬 호출 방식 ── -->
+<section>
+  <h2>스킬 호출 방식</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">수동 호출 — Skill 도구</p>
+      <p style="margin:0;">LLM이 상황에 맞는 스킬을 <code>Skill</code> 도구로 직접 호출</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">스킬 내용이 로드되어 LLM의 컨텍스트에 추가됨</p>
+    </div>
+    <div class="card" style="border-left:4px solid #f0a080;">
+      <p style="color:#f0a080; font-weight:700; margin:0 0 6px;">자동 트리거</p>
+      <p style="margin:0;">frontmatter의 description/trigger 조건에 따라 자동 활성화</p>
+      <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.85em;">"1% 확률로도 스킬이 적용될 것 같으면 무조건 호출하라"</p>
+    </div>
+    <div class="card" style="border-left:4px solid #9999bb;">
+      <p style="color:var(--text-muted); font-weight:700; margin:0 0 6px;">슬래시 커맨드</p>
+      <p style="margin:0;"><code>/skill-name</code> 형태로 사용자가 직접 호출</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 25: 스킬 만들기 ── -->
+<section>
+  <h2>언제, 어떻게 스킬을 만드나?</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:14px; font-size:0.78em;">
+    <div class="card" style="border-color:var(--accent); text-align:center; padding:20px;">
+      <p style="font-size:1.1em; margin:0;"><span class="accent">3번 이상</span> 반복되는 워크플로우는 스킬로 만들어라</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">스킬화 좋은 후보</p>
+        <ul style="font-size:0.85em;">
+          <li>코드 리뷰 절차</li>
+          <li>PR 작성 방식</li>
+          <li>배포 전 체크리스트</li>
+          <li>특정 패턴 구현 방식</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 8px;">만드는 방법</p>
+        <ul style="font-size:0.85em;">
+          <li>직접 <code>.md</code> 파일 작성</li>
+          <li><code>skillify</code> 스킬로 대화에서 추출</li>
+          <li>팀 리포에 올려 공유</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- ═══════════════════════════════════════
+         SECTION 6: 실전 (슬라이드 26~32)
+    ═══════════════════════════════════════ -->
+
+<!-- ── 슬라이드 26: 컨텍스트 관리 ── -->
+<section>
+  <h2>컨텍스트 관리</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">대화가 길어질수록 Claude는 "길을 잃는다"</p>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="border-left:4px solid #f97316;">
+      <p style="color:#f97316; font-weight:700; margin:0 0 6px;">왜 발생하는가</p>
+      <p style="margin:0;">200K 토큰 한계에 가까워지면 오래된 컨텍스트가 압축됨<br>초반의 중요한 지시사항이 희미해질 수 있음</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+      <div class="card" style="text-align:center;">
+        <code style="color:var(--accent);">/clear</code>
+        <p style="color:var(--text-muted); margin:8px 0 0; font-size:0.85em;">새 작업 시작 시<br>컨텍스트 초기화</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <p style="color:var(--accent); margin:0; font-weight:700;">CLAUDE.md</p>
+        <p style="color:var(--text-muted); margin:8px 0 0; font-size:0.85em;">핵심 규칙은<br>항상 주입되게</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <p style="color:var(--accent); margin:0; font-weight:700;">작게 쪼개기</p>
+        <p style="color:var(--text-muted); margin:8px 0 0; font-size:0.85em;">하나의 대화에서<br>하나의 작업만</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 27: 나만의 스킬 하네스 만들기 ── -->
+<section>
+  <h2>나만의 스킬 하네스 만들기</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">범용 스킬은 시작점, 나만의 스킬이 진짜 힘이다</p>
+  <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px; font-size:0.72em;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">오픈소스 스킬로는 부족할 때가 많다</p>
+      <p style="color:var(--text-muted); margin:0;">우리가 라이브러리를 래핑해 고수준 인터페이스를 만드는 이유와 같다<br>내 상황, 내 팀의 컨벤션에 맞게 커스텀해야 진짜로 쓸 수 있다</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">MCP · API · 외부 기능 래핑</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.9em;">외부 시스템 연결이 필요할 때<br>스킬로 감싸면 LLM이 자연스럽게 활용</p>
+      </div>
+      <div class="card">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">스킬은 계속 다듬어야</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.9em;">완벽한 스킬은 없다<br>쓰면서 개선하는 것이 맞다</p>
+      </div>
+    </div>
+    <div class="card" style="border-left:4px solid #f0a080;">
+      <p style="color:#f0a080; font-weight:700; margin:0 0 4px;">모델이 업데이트되면 하네스도 재검증해야</p>
+      <p style="color:var(--text-muted); margin:0;">모델 성능이 달라지면 스킬의 지시 방식도 달라져야 할 수 있다<br>버전 업마다 핵심 스킬의 동작을 확인하는 것이 필요</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 27b: 스킬과 팀 문화 ── -->
+<section>
+  <h2>스킬과 팀 문화</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">AI와 협업하는 방식도 팀이 함께 정해야 한다</p>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="display:grid; grid-template-columns:48px 1fr; gap:14px; align-items:start;">
+      <div style="font-size:1.6em; text-align:center;">📄</div>
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">복잡한 작업일수록 문서화가 중요해진다</p>
+        <p style="color:var(--text-muted); margin:0;">세부 계획, 의사결정 과정이 텍스트로 남아야<br>왜 이 선택을 했는지를 나중에도 추적할 수 있다</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:48px 1fr; gap:14px; align-items:start;">
+      <div style="font-size:1.6em; text-align:center;">👥</div>
+      <div>
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">코드리뷰에 AI 컨텍스트도 포함해야</p>
+        <p style="color:var(--text-muted); margin:0;">어떤 대화를 나눴는지, 어떤 스킬이 사용됐는지 기록하고 공유<br>AI가 만든 코드는 AI의 맥락도 함께 리뷰되어야 한다</p>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--accent); text-align:center; padding:16px;">
+      <p style="margin:0; font-size:0.9em;">"나만의 하네스를 계속 다듬는 것이 <span class="accent">AI 활용 역량</span>이 된다"</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 28: 잘 알고 시켜야 한다 ── -->
+<section>
+  <h2>잘 알고 시켜야 한다</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">LLM은 하라는 것만 한다 — 그러므로 잘 알고 시켜야</p>
+  <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px; font-size:0.73em;">
+    <div class="card" style="border-left:4px solid #f97316;">
+      <p style="color:#f97316; font-weight:700; margin:0 0 4px;">LLM은 추론하려는 특성이 있다</p>
+      <p style="color:var(--text-muted); margin:0;">판단하려 하기 때문에, 그럴듯한 이유를 들어 지시를 무시하는 경우가 생긴다<br>상황과 환경마다 "이건 하지 마라"를 <strong>명확하게</strong> 선언해야 한다</p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="card" style="border-left:4px solid var(--accent);">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">테스트 코드는 이제 필수</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.9em;">AI가 만든 코드가 맞는지<br>검증할 수 있는 기준이 있어야 한다</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--accent);">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 4px;">명확한 제약 설정</p>
+        <p style="color:var(--text-muted); margin:0; font-size:0.9em;">CLAUDE.md, 스킬에<br>금지 사항을 명시적으로 기록</p>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--accent); padding:16px 20px;">
+      <p style="margin:0; display:flex; align-items:center; gap:12px;">
+        <span style="font-size:1.4em;">💡</span>
+        <span><span class="accent">분석에 시간을 더 들일수록 결과가 좋아진다</span><br>
+        <span style="color:var(--text-muted); font-size:0.85em;">요청 전 충분히 생각하는 것이 가장 중요한 습관</span></span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 29: 잘 쓰는 법 ── -->
+<section>
+  <h2>잘 쓰는 법</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="display:grid; grid-template-columns:36px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-size:1.3em; font-weight:700;">1</span>
+      <div>
+        <p style="font-weight:700; margin:0;">구체적인 목표와 성공 기준을 함께 주기</p>
+        <p style="color:var(--text-muted); margin:4px 0 0; font-size:0.85em;">"auth 버그 수정해줘" → "로그인 시 토큰이 갱신되지 않는 버그 수정. 테스트가 통과해야 함"</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:36px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-size:1.3em; font-weight:700;">2</span>
+      <div>
+        <p style="font-weight:700; margin:0;">작은 단위로 위임하고 결과 확인 후 다음 단계</p>
+        <p style="color:var(--text-muted); margin:4px 0 0; font-size:0.85em;">한 번에 너무 많이 맡기면 → 중간에 방향을 잃거나 엉뚱한 결과</p>
+      </div>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:36px 1fr; gap:12px; align-items:start;">
+      <span style="color:var(--accent); font-size:1.3em; font-weight:700;">3</span>
+      <div>
+        <p style="font-weight:700; margin:0;">검증 기준을 명시하기</p>
+        <p style="color:var(--text-muted); margin:4px 0 0; font-size:0.85em;">"완료 전에 테스트 실행해서 통과 확인해줘" — Claude가 스스로 검증하게 유도</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 30: 실망했던 순간들 ── -->
+<section>
+  <h2>실망했던 순간들</h2>
+  <p class="muted" style="font-size:0.6em; margin-top:-10px;">이것들을 알면 덜 실망한다</p>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="border-left:4px solid #f97316;">
+      <p style="color:#f97316; font-weight:700; margin:0 0 4px;">긴 대화에서 지시를 잊어버리는 것</p>
+      <p style="color:var(--text-muted); margin:0;">"CLAUDE.md에 쓰지 말라고 했는데..." → 컨텍스트 압축의 한계<br><strong>대응:</strong> 중요한 제약은 CLAUDE.md에, 대화는 짧게</p>
+    </div>
+    <div class="card" style="border-left:4px solid #f97316;">
+      <p style="color:#f97316; font-weight:700; margin:0 0 4px;">Hallucination — 없는 것을 있다고 하는 것</p>
+      <p style="color:var(--text-muted); margin:0;">없는 API, 없는 파일, 없는 함수를 참조하는 코드 생성<br><strong>대응:</strong> 구현 전에 탐색부터 시키기</p>
+    </div>
+    <div class="card" style="border-left:4px solid #f97316;">
+      <p style="color:#f97316; font-weight:700; margin:0 0 4px;">"완료했습니다"인데 실제로 안 된 경우</p>
+      <p style="color:var(--text-muted); margin:0;">테스트를 실행하지 않고 완료 선언<br><strong>대응:</strong> 검증 기준을 명시하고 직접 확인하기</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 31: 도입 시 고려사항 ── -->
+<section>
+  <h2>팀 도입 시 고려사항</h2>
+  <div style="margin-top:20px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="display:grid; grid-template-columns:80px 1fr; gap:16px; align-items:start;">
+      <p style="color:var(--accent); font-weight:700; text-align:center; margin:0; font-size:1.1em;">💰 비용</p>
+      <p style="margin:0; color:var(--text-muted);">토큰 사용량 = 비용. 긴 컨텍스트, 멀티에이전트는 비용이 크다.<br>팀 단위 사용량 모니터링 필요</p>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:80px 1fr; gap:16px; align-items:start;">
+      <p style="color:var(--accent); font-weight:700; text-align:center; margin:0; font-size:1.1em;">🔒 권한</p>
+      <p style="margin:0; color:var(--text-muted);">프로덕션 환경 접근은 제한. Bash 도구 허용 범위 팀 정책으로 수립.<br>민감한 환경변수, 키 파일 접근 주의</p>
+    </div>
+    <div class="card" style="display:grid; grid-template-columns:80px 1fr; gap:16px; align-items:start;">
+      <p style="color:var(--accent); font-weight:700; text-align:center; margin:0; font-size:1.1em;">📋 컨벤션</p>
+      <p style="margin:0; color:var(--text-muted);">CLAUDE.md를 팀 리포에 커밋해 공유. 공통 스킬도 리포에 포함.<br>"AI에게 뭘 가르칠지"를 팀이 함께 결정</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 슬라이드 32: 정리 ── -->
+<section>
+  <h2>정리</h2>
+  <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; font-size:0.75em;">
+    <div class="card" style="border-color:var(--accent); padding:20px 28px;">
+      <p style="text-align:center; font-size:1em; margin:0;">
+        <span class="accent">LLM</span> + <span class="accent">도구</span> + <span class="accent">실행 루프</span> = <strong>Claude Code</strong>
+      </p>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="card" style="font-size:0.85em;">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">이해해야 할 핵심</p>
+        <ul>
+          <li>Tool Call 사이클</li>
+          <li>컨텍스트 윈도우 한계</li>
+          <li>에이전트 실행 루프</li>
+          <li>멀티에이전트 구조</li>
+        </ul>
+      </div>
+      <div class="card" style="font-size:0.85em;">
+        <p style="color:var(--accent); font-weight:700; margin:0 0 6px;">활용 레버</p>
+        <ul>
+          <li>CLAUDE.md 잘 쓰기</li>
+          <li>스킬로 워크플로우 표준화</li>
+          <li>작은 단위 + 검증 기준</li>
+          <li>컨텍스트 짧게 유지</li>
+        </ul>
+      </div>
+    </div>
+    <p style="text-align:center; color:var(--accent); font-weight:700; margin:4px 0 0; font-size:0.9em;">
+      "원리를 알수록 더 잘 쓸 수 있다"
+    </p>
+  </div>
+</section>
+
+  </div>
+</div>
+
+<!-- Reveal.js -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+
+<!-- Mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js"></script>
+
+<script>
+  // Mermaid 초기화 (startOnLoad: false — Reveal 준비 후 수동 렌더링)
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#D97757',
+      primaryTextColor: '#e8e8f0',
+      primaryBorderColor: '#2a2a4a',
+      lineColor: '#9999bb',
+      secondaryColor: '#16213e',
+      tertiaryColor: '#1a1a2e',
+      background: '#1a1a2e',
+      mainBkg: '#16213e',
+      nodeBorder: '#D97757',
+      clusterBkg: '#16213e',
+      titleColor: '#e8e8f0',
+      edgeLabelBackground: '#1a1a2e',
+      fontFamily: 'arial,sans-serif',
+    }
+  });
+
+  // 다이어그램 원본 코드를 미리 저장
+  // (Reveal이 슬라이드를 숨기기 전에 저장해야 함)
+  document.querySelectorAll('.mermaid').forEach(el => {
+    el.dataset.src = el.textContent.trim();
+  });
+
+  // 슬라이드가 실제로 보일 때 다이어그램 렌더링
+  // display:none 상태에서는 Mermaid가 SVG 크기를 계산하지 못하므로
+  // 반드시 슬라이드가 표시된 후에 렌더링해야 함
+  function renderMermaidInSlide(slide) {
+    const nodes = Array.from(slide.querySelectorAll('.mermaid'));
+    if (nodes.length === 0) return;
+    // 원본 코드 복원 후 재렌더링 (이전에 잘못 렌더링된 경우 포함)
+    nodes.forEach(el => {
+      el.innerHTML = el.dataset.src;
+      el.removeAttribute('data-processed');
+    });
+    // 렌더링 완료 후 Mermaid 인라인 max-width 픽셀값 해제
+    mermaid.run({ nodes }).then(() => {
+      slide.querySelectorAll('.mermaid svg').forEach(svg => {
+        svg.style.maxWidth = '100%';
+      });
+    });
+  }
+
+  // Reveal 초기화
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [RevealHighlight, RevealNotes],
+  });
+
+  Reveal.on('ready', ({ currentSlide }) => renderMermaidInSlide(currentSlide));
+  Reveal.on('slidechanged', ({ currentSlide }) => renderMermaidInSlide(currentSlide));
+</script>
+</body>
+</html>
