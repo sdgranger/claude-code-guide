@@ -25,10 +25,11 @@ Phase 6  고급 기능
 | # | 가이드 | 핵심 질문 | 연결 Phase | 원본 |
 |---|--------|---------|-----------|------|
 | 1 | [작동 방식](claude-code-how-it-works.md) | Claude Code는 내부적으로 어떻게 동작하는가? | Phase 1 | [공식](https://code.claude.com/docs/ko/how-claude-code-works) |
-| 2 | [확장하기](claude-code-extensions.md) | Skill, Subagent, Hook, MCP은 언제 어떤 걸 쓰나? | Phase 5, 6 | [공식](https://code.claude.com/docs/ko/features-overview) |
+| 2 | [확장하기](claude-code-extensions.md) | Skill, Subagent, Hook, MCP, Plugin은 언제 어떤 걸 쓰나? | Phase 5, 6 | [공식](https://code.claude.com/docs/ko/features-overview) |
 | 3 | [지침 및 메모리](claude-code-memory.md) | CLAUDE.md와 자동 메모리를 어떻게 관리하나? | Phase 2 | [공식](https://code.claude.com/docs/ko/memory) |
 | 4 | [일반적인 워크플로우](claude-code-workflows.md) | 실전에서 어떤 패턴으로 작업하나? | Phase 4 | [공식](https://code.claude.com/docs/ko/common-workflows) |
 | 5 | [모범 사례](claude-code-best-practices.md) | 흔한 실수를 피하고 최대한 활용하려면? | 전체 | [공식](https://code.claude.com/docs/ko/best-practices) |
+| ⭐ | [핵심 인사이트 모음](claude-code-insights.md) | 한 번에 파악하기 어려운 메타 인사이트 11선 | 전체 | (자체 정리) |
 
 ---
 
@@ -438,7 +439,28 @@ claude -p "스테이징된 변경사항에 문제 없는지 확인" \
 - [ ] `/effort` 레벨 조절해보기 (`low`/`medium`/`high`/`xhigh`/`max`/`auto`) — 모델별로 사용 가능 레벨 다름, `max`는 세션 한정
 - [ ] `claude --effort high "..."` 로 시작 시 노력 레벨 지정
 
-### 6.4 프로젝트 디렉토리 구조 정리
+### 6.4 Plugins (확장 기능 패키징)
+
+여러 Skill/Agent/Hook/MCP를 묶어 **마켓플레이스로 배포** 가능:
+
+```
+my-plugin/
+├── .claude-plugin/plugin.json   # 매니페스트 (이름/버전/설명)
+├── commands/                     # 슬래시 명령
+├── agents/                       # 서브에이전트
+├── skills/                       # 스킬
+├── hooks/                        # 훅
+└── bin/                          # PATH에 추가될 실행 파일
+```
+
+- [ ] `/plugin` — 플러그인 관리 메뉴
+- [ ] `claude --plugin-dir ./my-plugin` — 로컬 플러그인 테스트
+- [ ] `/reload-plugins` — 변경사항 재로드 (재시작 없이)
+- [ ] `claude plugin install <name>@<marketplace>` — 마켓플레이스에서 설치
+
+> 호출 시: `/plugin-name:command` 형식 (네임스페이스 분리)
+
+### 6.5 프로젝트 디렉토리 구조 정리
 ```
 my-project/
 ├── CLAUDE.md                     # 프로젝트 지침
@@ -463,7 +485,7 @@ my-project/
 - [ ] 현재 프로젝트에 `.claude/` 구조 세팅해보기
 - [ ] `.gitignore`에 로컬 설정 파일 추가
 
-### 6.5 심화 학습 체크
+### 6.6 심화 학습 체크
 - [ ] [워크플로우](claude-code-workflows.md) 11장: Extended Thinking 구성 방법 이해
 - [ ] [워크플로우](claude-code-workflows.md) 13장: Unix 유틸리티로 사용하기 (파이프, CI/CD)
 - [ ] [모범 사례](claude-code-best-practices.md) 7장: 병렬 세션 & fan-out 자동화 이해

@@ -242,9 +242,41 @@ Subagent 컨텍스트: [파일1 읽기] → [파일2 읽기] → ... → [요약
                    (메인 컨텍스트에 영향 없음!)
 ```
 
+### Subagent의 컨텍스트는 메인과 어떻게 다른가?
+
+| 항목 | 메인 세션 | Subagent |
+|------|----------|----------|
+| 시스템 프롬프트 | 전체 | 더 짧음 (custom agent는 자체 정의) |
+| CLAUDE.md | 로드 | **별도 로드** (subagent 컨텍스트에 카운트) |
+| 자동 메모리 | 메인 MEMORY.md | **상속 안 됨** (`memory:` frontmatter 있으면 별도 MEMORY.md) |
+| MCP 서버 + 스킬 | 모두 | 대부분 동일 |
+| 부모 대화 기록 | - | **없음** (작업 지시만 받음) |
+| Plan 모드 도구 | 사용 가능 | 제외 (재귀 방지) |
+| 백그라운드 태스크 도구 | 사용 가능 | 제외 |
+| Agent 도구 자체 | 사용 가능 | **기본적으로 제외** (재귀 방지) |
+| 결과 반환 | - | **최종 텍스트 응답만** + 토큰 메타데이터 |
+
+> **컨텍스트 절약 효과**: 위 docs 예시 — Subagent가 6,100토큰 분의 파일을 읽었지만, 메인은 420토큰 요약만 받음 = **약 14배 절약**.
+>
+> **Built-in Explore와 Plan 에이전트는 CLAUDE.md를 안 읽음** (더 작은 컨텍스트로 빠른 탐색).
+
+### `isolation: worktree` — 안전한 실험
+
+```yaml
+# .claude/agents/experimental.md
+---
+name: experimental
+isolation: worktree
+description: 위험한 실험을 격리된 git worktree에서 실행
+---
+```
+
+> 서브에이전트가 저장소의 격리된 복사본에서 작업 → 실패해도 메인 작업 영향 없음.
+
 - [ ] `/agents`로 사용 가능한 Subagent 확인
 - [ ] `.claude/agents/`에 커스텀 Subagent 하나 만들어보기
 - [ ] "subagent를 사용하여 조사해" 패턴 사용해보기
+- [ ] Built-in Explore agent로 광범위 탐색 위임해보기
 
 ---
 
@@ -451,7 +483,94 @@ CLAUDE.md   MCP 도구   Skill 설명   Subagent   Hook
 
 ---
 
-## 9. 기능 결합 패턴
+## 9. Plugins (모든 확장을 묶어서 배포)
+
+### Plugin이란?
+
+`.claude-plugin/plugin.json` 매니페스트가 있는 디렉토리. **여러 확장 기능을 하나의 패키지로 묶어** 팀/커뮤니티에 배포 가능.
+
+### Plugin vs 단순 `.claude/` 설정 비교
+
+| | `.claude/` 설정 | Plugin |
+|---|----------------|--------|
+| 위치 | 프로젝트 루트 | 별도 디렉토리 (분리 배포) |
+| 호출 | `/command` | `/plugin-name:command` (네임스페이스) |
+| 공유 방법 | git 체크인 | **마켓플레이스로 배포** |
+| 버전 관리 | 프로젝트 git | 독립 버저닝 |
+| 재사용 | 단일 프로젝트 | 여러 프로젝트 |
+
+### Plugin 구조
+
+```
+my-plugin/
+├── .claude-plugin/
+│   └── plugin.json       # 매니페스트 (이름/설명/버전)
+├── commands/             # 슬래시 명령
+├── agents/               # 서브에이전트
+├── skills/               # 스킬 (각각 SKILL.md)
+├── hooks/                # 훅 스크립트
+├── bin/                  # 활성화 시 PATH에 추가될 실행 파일
+└── settings.json         # 기본 설정 (agent, subagentStatusLine만 지원)
+```
+
+> ⚠️ **흔한 실수**: `commands/`, `agents/`, `skills/`, `hooks/` 를 `.claude-plugin/` 안에 넣지 말 것. 그것들은 **plugin 루트**에 있어야 함. `.claude-plugin/`에는 `plugin.json`만.
+
+### plugin.json 기본 매니페스트
+
+```json
+{
+  "name": "my-first-plugin",
+  "version": "0.1.0",
+  "description": "팀 공통 워크플로우 모음"
+}
+```
+
+### 로컬 개발/테스트
+
+```bash
+# 로컬 디렉토리를 플러그인으로 로드 (개발 중)
+claude --plugin-dir ./my-plugin
+
+# 여러 개도 가능
+claude --plugin-dir ./plugin-a --plugin-dir ./plugin-b
+```
+
+> 이미 설치된 마켓플레이스 플러그인과 같은 이름이면 **로컬 복사본이 우선** (재설치 없이 변경 테스트 가능).
+
+### Plugin의 특별 기능
+
+| 기능 | 설명 |
+|------|------|
+| **`bin/` 디렉토리** | 활성화 시 Bash 도구의 PATH에 추가됨 → CLI 도구 번들 가능 |
+| **`settings.json`의 `agent`** | 플러그인의 커스텀 에이전트를 **메인 스레드로 활성화** → 시스템 프롬프트/도구 제한/모델까지 변경 |
+| **LSP 서버 통합** | 플러그인에 LSP 서버 포함 가능 (TypeScript, Python, Rust 등은 공식 마켓플레이스에 사전 빌드 존재) |
+| **Background monitors** | 플러그인이 백그라운드 모니터 추가 가능 |
+| **버전 관리** | 마켓플레이스 통한 버전 핀, 업데이트 알림 |
+
+### 관리 명령
+
+```bash
+/plugin                  # 플러그인 관리 메뉴
+/reload-plugins          # 변경사항 재로드 (재시작 없이)
+claude plugin install <name>@<marketplace>
+```
+
+### Plugin 사용 시기 결정
+
+```
+이 워크플로우를...
+├─ 나만 쓴다 → ~/.claude/skills/
+├─ 이 프로젝트 팀과 쓴다 → .claude/skills/ (git 체크인)
+└─ 여러 팀/프로젝트/커뮤니티와 쓴다 → Plugin
+```
+
+- [ ] `/plugin`으로 플러그인 관리 메뉴 확인
+- [ ] 공식 마켓플레이스에서 흥미로운 플러그인 1개 설치해보기
+- [ ] 본인이 자주 쓰는 Skill을 플러그인으로 만들어보기
+
+---
+
+## 10. 기능 결합 패턴
 
 | 패턴 | 작동 방식 | 예시 |
 |------|---------|------|
@@ -459,6 +578,7 @@ CLAUDE.md   MCP 도구   Skill 설명   Subagent   Hook
 | **Skill + Subagent** | Skill이 병렬 작업을 Subagent에 위임 | `/audit`이 보안/성능/스타일 agent 시작 |
 | **CLAUDE.md + Skill** | 항상 규칙 + 온디맨드 참조 자료 | "API 규칙 따르세요" + 전체 API 가이드 |
 | **Hook + MCP** | Hook이 MCP를 통해 외부 작업 트리거 | 중요 파일 편집 시 Slack 알림 |
+| **Plugin + 다중 기능** | Plugin이 commands+skills+hooks 묶음 배포 | 팀 코드 리뷰 플러그인 (스킬+훅+에이전트) |
 
 - [ ] 두 가지 이상의 기능을 결합하여 워크플로우 만들어보기
 
@@ -470,4 +590,4 @@ CLAUDE.md   MCP 도구   Skill 설명   Subagent   Hook
 > 3. **외부 연결이 필요한가?** → MCP
 > 4. **컨텍스트 격리가 필요한가?** → Subagent
 > 5. **예외 없이 자동화해야 하는가?** → Hook
-> 6. **팀/커뮤니티와 공유해야 하는가?** → Plugin
+> 6. **팀/커뮤니티와 공유해야 하는가?** → **Plugin**
