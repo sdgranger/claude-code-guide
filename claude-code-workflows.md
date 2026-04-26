@@ -88,9 +88,17 @@ claude
 
 | 방법 | 명령 |
 |------|------|
-| **세션 중 전환** | `Shift+Tab` × 2 (기본값 → Auto-Accept → Plan Mode) |
+| **세션 중 전환** | `Shift+Tab` × 2 (default → acceptEdits → plan) |
+| **단일 프롬프트만** | `/plan [작업 설명]` (즉시 plan 모드 진입) |
 | **새 세션 시작** | `claude --permission-mode plan` |
 | **비대화형 분석** | `claude --permission-mode plan -p "인증 시스템 분석"` |
+
+### Plan 승인 후 옵션
+
+계획이 완성되면 Claude가 다음 옵션을 제시:
+- **Approve and start in auto mode** — 계획대로 즉시 자동 실행
+- **Keep planning with feedback** — 피드백 반영해서 계속 다듬기
+- **Refine with Ultraplan** — 브라우저 기반 검토로 발전
 
 ### Plan Mode 워크플로우
 
@@ -287,10 +295,20 @@ osascript -e 'display notification "Claude Code needs your attention" with title
 
 | 설정 | 방법 | 용도 |
 |------|------|------|
-| 노력 수준 | `/model`에서 조정 | low / medium / high |
+| 노력 수준 | `/effort [level]` 또는 `/model`에서 조정 | `low` / `medium` / `high` / `xhigh` / `max` / `auto` |
 | `ultrathink` | 프롬프트에 포함 | 한 번만 깊은 추론 |
 | 토글 | `Option+T` / `Alt+T` | 현재 세션 on/off |
+| CLI 시작 시 | `claude --effort high` | 세션 시작부터 적용 |
 | 전역 기본값 | `/config` | 모든 프로젝트 기본값 |
+
+> **`/effort` 레벨 차이**:
+> - `low`: 빠름, 간단한 작업
+> - `medium`: 기본값
+> - `high`: 복잡한 분석
+> - `xhigh`: 매우 깊은 추론 (시간 더 소요)
+> - `max`: 세션 한정 최대 (저장되지 않음)
+> - `auto`: 모델 기본값으로 리셋
+> 사용 가능 레벨은 모델마다 다름 (예: Haiku는 일부 레벨 미지원).
 
 ### 언제 사용?
 - 복잡한 아키텍처 결정

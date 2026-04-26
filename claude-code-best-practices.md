@@ -557,3 +557,94 @@ Claude가 어려움을 겪을 때:
 > 3. **구체적으로 프롬프트하라** — 파일, 제약 조건, 패턴 참조
 > 4. **Context를 관리하라** — `/clear`, `/compact`, Subagent 활용
 > 5. **실패 루프를 인식하라** — 2번 수정 실패 시 `/clear` 후 재시작
+
+---
+
+## 10. 최신 기능 활용 팁 (2026 추가)
+
+### 10.1 `auto` 모드로 장시간 작업 위임
+
+```bash
+claude --permission-mode auto "마이그레이션 작업 진행"
+```
+
+> 안전 분류기가 백그라운드에서 위험한 작업을 차단하면서 자동 진행. 단, **외부 인프라(DB, S3 등)는 `autoMode.environment` 설정**으로 trusted로 등록해야 차단되지 않음.
+> 분류기가 3회 연속/누적 20회 차단하면 default로 폴백.
+
+### 10.2 `/rewind`로 위험한 시도 안전하게
+
+```
+"이 리팩토링 시도해봐" → 결과 별로다 → /rewind → 다른 접근
+```
+
+> 모든 파일 편집은 자동 체크포인트. **코드만/대화만/둘 다** 선택적 복원 가능.
+> 실패해도 복구 가능 → **더 과감한 시도가 가능**해짐.
+
+### 10.3 `/loop` 으로 폴링 자동화
+
+```
+/loop 5m 빌드 상태 확인하고 실패하면 수정해
+/loop /babysit-prs              # 프롬프트 생략 시 사용자 정의 동작
+```
+
+> 백그라운드 모니터링 작업을 Claude에게 위임. interval 생략 시 Claude가 자체 페이싱.
+
+### 10.4 `/batch` 로 대규모 마이그레이션
+
+```
+/batch src/ 디렉토리를 Solid에서 React로 마이그레이션
+```
+
+> 5~30개 단위로 자동 분해 → worktree 격리 → 병렬 실행 → 각자 PR 생성.
+> 기존 fan-out 스크립트(7.3절)보다 훨씬 간단.
+
+### 10.5 `--bare` 모드로 빠른 스크립트 실행
+
+```bash
+claude --bare -p "이 코드 분석"
+```
+
+> hooks/skills/MCP/auto memory/CLAUDE.md 자동 발견을 모두 건너뛰고 빠르게 시작. CI 등에서 시작 오버헤드 줄일 때 유용.
+
+### 10.6 `--exclude-dynamic-system-prompt-sections` 로 캐시 효율 ↑
+
+```bash
+claude -p --exclude-dynamic-system-prompt-sections "..."
+```
+
+> working directory, env, git status 같은 머신별 정보를 시스템 프롬프트에서 빼고 첫 사용자 메시지로 옮김. 여러 사용자/머신이 같은 작업 실행 시 prompt cache 공유 가능 → 비용 절감.
+
+### 10.7 PR 자동화 워크플로우
+
+```bash
+# Claude가 PR 생성 → 세션 자동 연결
+"PR 만들어줘"
+
+# 나중에 PR 기반으로 재개
+claude --from-pr 123
+
+# CI 실패 시 자동 수정
+/autofix-pr "린트와 타입 에러만 수정해"
+
+# 다중 에이전트 클라우드 리뷰
+/ultrareview
+```
+
+### 10.8 Subagent 격리 옵션
+
+서브에이전트 frontmatter에 `isolation: worktree` 설정 시 **저장소의 격리된 복사본**에서 작업. 메인 작업과 충돌 없이 안전한 실험 가능.
+
+```yaml
+---
+name: experiment-runner
+isolation: worktree
+---
+```
+
+### 10.9 권한 최적화: `/fewer-permission-prompts`
+
+```
+/fewer-permission-prompts
+```
+
+> 트랜스크립트를 분석해 자주 승인한 안전 명령을 자동으로 `.claude/settings.json`의 allowlist에 추가. 권한 피로 해소.

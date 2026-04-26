@@ -107,15 +107,29 @@ npm 명령은 @package.json 참조
 
 ## 4. Skills (커스텀 슬래시 명령)
 
-### Skill 생성 방법
+> **2026 변경**: 기존 **Custom Commands(`.claude/commands/`)는 Skills로 통합**되었습니다.
+> `.claude/commands/deploy.md` 와 `.claude/skills/deploy/SKILL.md` 는 동일하게 `/deploy`로 동작.
+> 기존 commands 파일은 그대로 작동하며, Skills는 보조 파일/자동 호출/추가 frontmatter 옵션 제공.
 
-`.claude/skills/` 디렉토리에 `SKILL.md` 파일 생성:
+### Skill 위치별 범위
+
+| 위치 | 적용 |
+|------|------|
+| `~/.claude/skills/<이름>/SKILL.md` | 모든 프로젝트 (개인) |
+| `.claude/skills/<이름>/SKILL.md` | 현재 프로젝트만 (팀 공유) |
+| `<plugin>/skills/<이름>/SKILL.md` | 플러그인 활성화된 곳 |
+| 관리형 (organization) | 조직 전체 |
+
+> **Live change detection**: 기존 skills 디렉토리에 파일 추가/수정/삭제는 **세션 재시작 없이** 즉시 반영됨. 단, 최상위 skills 디렉토리를 새로 만든 경우엔 재시작 필요.
+
+### Skill 생성 예시
 
 ```markdown
 # .claude/skills/fix-issue/SKILL.md
 ---
 name: fix-issue
 description: GitHub 이슈 분석 및 수정
+argument-hint: [issue-number]
 disable-model-invocation: true
 ---
 GitHub 이슈를 분석하고 수정하세요: $ARGUMENTS.
@@ -127,26 +141,70 @@ GitHub 이슈를 분석하고 수정하세요: $ARGUMENTS.
 5. 커밋하고 PR 생성
 ```
 
-### Skill 호출
-```bash
-/fix-issue 1234
+호출: `/fix-issue 1234`
+
+### Skill Frontmatter 전체 옵션
+
+| 필드 | 필수 | 설명 |
+|------|:---:|------|
+| `name` | - | 슬래시 명령 이름 (생략 시 디렉토리 이름) |
+| `description` | 권장 | Claude가 자동 호출 판단에 사용. **1,536자에서 잘림** |
+| `when_to_use` | - | 추가 트리거 문구. description과 합쳐 1,536자 캡 |
+| `argument-hint` | - | 자동완성 힌트 (예: `[filename] [format]`) |
+| `arguments` | - | 명명 인수 리스트. `$이름` 으로 본문에서 치환 |
+| `disable-model-invocation` | - | `true` 시 자동 호출 차단 (사용자만 트리거) |
+| `user-invocable` | - | `false` 시 `/` 메뉴에서 숨김 (백그라운드 지식용) |
+| `allowed-tools` | - | 권한 묻지 않고 쓸 도구 목록 |
+| `model` | - | 스킬 실행 중 모델 오버라이드 (`inherit` 가능) |
+| `effort` | - | 스킬 실행 중 노력 수준 오버라이드 |
+| `context: fork` | - | 서브에이전트로 격리 실행 |
+| `agent` | - | `context: fork` 시 사용할 서브에이전트 타입 |
+| `hooks` | - | 스킬 라이프사이클에 한정된 훅 |
+| `paths` | - | glob 패턴 매칭 시에만 자동 로드 (예: `src/**/*.ts`) |
+| `shell` | - | `bash` (기본) 또는 `powershell` |
+
+### 사용 가능한 문자열 치환
+
+| 변수 | 의미 |
+|------|------|
+| `$ARGUMENTS` | 호출 시 인수 전체 |
+| `$ARGUMENTS[N]` / `$N` | N번째 인수 (0-based) |
+| `$이름` | frontmatter `arguments`에 선언된 명명 인수 |
+| `${CLAUDE_SESSION_ID}` | 현재 세션 ID |
+| `${CLAUDE_SKILL_DIR}` | 스킬 SKILL.md 위치 (보조 스크립트 참조용) |
+
+### Skill Content 라이프사이클 (중요!)
+
+```
+스킬 호출 → SKILL.md 전체가 단일 메시지로 컨텍스트 진입
+         → 세션 끝까지 유지됨
+         → Claude는 이후 턴에서 SKILL.md 재읽기 안 함
 ```
 
-### Skill Frontmatter 옵션
+> **함의**: 스킬 본문은 "이 작업 동안 계속 따라야 할 지침"으로 작성하세요. 일회성 단계 나열보다 표준 지침 형태가 효과적.
 
-| 필드 | 설명 |
+### 압축(compaction) 시 동작
+
+자동 압축이 일어나도 **가장 최근에 호출된 스킬은 다시 첨부**됩니다.
+- 스킬당 최초 5,000 토큰 보존
+- 재첨부 스킬 합산 25,000 토큰 예산 (최신 호출부터 채움 — 오래된 스킬은 떨어져 나갈 수 있음)
+
+### 번들 스킬 (Claude Code 내장)
+
+| 스킬 | 역할 |
 |------|------|
-| `name` | Skill 이름 (호출 시 사용) |
-| `description` | Claude가 관련성 판단에 사용하는 설명 |
-| `disable-model-invocation: true` | 수동 호출만 (자동 로드 안 함) |
-| `context: fork` | 격리된 컨텍스트에서 실행 |
-| `argument-hint` | 인수 힌트 표시 |
+| `/simplify [focus]` | 변경 파일을 3개 에이전트가 병렬 리뷰 후 수정 |
+| `/batch <지시>` | 대규모 변경을 5~30개 단위로 분해, worktree에서 병렬 실행 + PR 생성 |
+| `/debug [설명]` | 디버그 로깅 활성화 + 세션 로그 분석 |
+| `/loop [interval] [prompt]` | 프롬프트 주기적 반복 실행 (interval 생략 시 자체 페이싱) |
+| `/claude-api [migrate]` | Claude API/Managed Agents 레퍼런스 로드 (모델 마이그레이션 자동화) |
+| `/fewer-permission-prompts` | 트랜스크립트 분석 후 안전 명령 allowlist 자동 추가 |
 
-> **Tip**: 부작용이 있는 Skill에는 `disable-model-invocation: true` 설정하세요.
-> 컨텍스트도 절약되고, 사용자만 트리거할 수 있습니다.
+> **Tip**: 부작용이 있는 Skill (배포, 외부 API 호출 등)에는 `disable-model-invocation: true` 설정하세요. 자동 호출 방지 + 컨텍스트 절약.
 
-- [ ] `.claude/skills/` 디렉토리에 간단한 Skill 하나 만들어보기
-- [ ] `/skill명 인수`로 실행해보기
+- [ ] `.claude/skills/` 또는 `~/.claude/skills/`에 간단한 Skill 하나 만들어보기
+- [ ] `/skills` 로 사용 가능한 스킬 목록 확인 (`t` 키로 토큰 정렬)
+- [ ] 번들 스킬 (`/simplify`, `/debug`) 한 번씩 실행해보기
 
 ---
 
@@ -192,27 +250,49 @@ Subagent 컨텍스트: [파일1 읽기] → [파일2 읽기] → ... → [요약
 
 ## 6. MCP 서버 (외부 서비스 연결)
 
+### MCP Transport 종류 (3가지)
+
+| Transport | 용도 |
+|-----------|------|
+| `--transport http` | 원격 HTTP 서버 (가장 일반적) |
+| `--transport sse` | 원격 SSE (Server-Sent Events) 서버 |
+| `--transport stdio` | 로컬 프로세스 (npx 등으로 실행) |
+
 ### MCP 추가 방법
 ```bash
-# GitHub 연동
+# 원격 HTTP (GitHub, Notion, Sentry 등)
 claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+claude mcp add --transport http notion https://mcp.notion.com/mcp
 
-# 데이터베이스 연동
+# 원격 SSE (Asana 등)
+claude mcp add --transport sse asana https://mcp.asana.com/sse
+
+# 로컬 stdio (DB, 파일시스템)
 claude mcp add --transport stdio db -- npx @bytebase/dbhub --dsn "postgresql://..."
 ```
 
 ### MCP 관리
 ```bash
 claude mcp list    # 설치된 MCP 서버 확인
-/mcp               # 세션 내에서 연결 상태 및 토큰 비용 확인
+/mcp               # 세션 내에서 연결 상태 및 OAuth 관리
 ```
 
 ### MCP 범위
-| 범위 | 설정 방법 |
-|------|---------|
-| **로컬** (개인/프로젝트) | `--scope local` |
-| **프로젝트** (팀 공유) | `--scope project` |
-| **사용자** (모든 프로젝트) | `--scope user` |
+| 범위 | 설정 방법 | 저장 위치 |
+|------|---------|----------|
+| **로컬** (기본) | `--scope local` | 사용자별 (해당 프로젝트) |
+| **프로젝트** (팀 공유) | `--scope project` | `.mcp.json` (git 체크인) |
+| **사용자** (개인 전역) | `--scope user` | 모든 프로젝트에서 사용 |
+
+### MCP 도구 이름 규칙
+
+MCP 서버의 도구는 `mcp__<server>__<tool>` 형식으로 노출됩니다 (예: `mcp__github__create_issue`).
+- Hook matcher에서 `mcp__github\.*` 처럼 정규식으로 필터링 가능
+- Permission rule에서도 동일 패턴 사용
+
+### MCP Prompts (슬래시 명령으로)
+
+MCP 서버가 prompt를 제공하면 `/mcp__<server>__<prompt>` 형태로 자동 등록됩니다.
 
 > **주의**: MCP 서버는 세션 시작 시 모든 도구 정의가 로드되어 컨텍스트를 소비합니다.
 > 사용하지 않는 서버는 연결 해제하세요.
@@ -224,15 +304,58 @@ claude mcp list    # 설치된 MCP 서버 확인
 
 ## 7. Hooks (결정론적 자동화)
 
-### Hook 이벤트
+### Hook 이벤트 (라이프사이클별)
 
+**세션 단위 (Session)**
+| 이벤트 | 타이밍 | matcher 값 |
+|--------|--------|-----------|
+| `SessionStart` | 세션 시작/재개 | `startup`, `resume`, `clear`, `compact` |
+| `SessionEnd` | 세션 종료 | (없음) |
+
+**턴 단위 (Per-turn)**
 | 이벤트 | 타이밍 | 활용 |
 |--------|--------|------|
-| `PreToolUse` | 도구 실행 전 | 위험 명령 차단, 입력 검증 |
-| `PostToolUse` | 도구 실행 후 | 자동 포맷팅, 린팅 |
-| `Stop` | 작업 완료 시 | 결과 검증, 알림 |
-| `Notification` | 입력 필요 시 | 데스크톱 알림 |
-| `InstructionsLoaded` | 지침 로드 시 | 디버깅, 로깅 |
+| `UserPromptSubmit` | 사용자 입력 직후, Claude 처리 전 | 프롬프트 검증/변환 |
+| `Stop` | 턴 정상 완료 | 결과 검증, 알림 |
+| `StopFailure` | API 에러로 턴 종료 | 에러 로깅 (output/exit code 무시됨) |
+
+**도구 호출 단위 (Per-tool)**
+| 이벤트 | 타이밍 | matcher |
+|--------|--------|---------|
+| `PreToolUse` | 도구 실행 전 | tool 이름 (`Bash`, `Edit\|Write`, `mcp__.*`) |
+| `PostToolUse` | 도구 실행 성공 후 | tool 이름 |
+| `PostToolUseFailure` | 도구 실행 실패 후 | tool 이름 |
+| `PostToolBatch` | 병렬 도구 호출 묶음 후 | (matcher 없음) |
+| `PermissionRequest` | 권한 요청 발생 시 | tool 이름 |
+| `PermissionDenied` | auto 모드에서 차단 시 | tool 이름 |
+
+**서브에이전트 / 백그라운드**
+| 이벤트 | 타이밍 |
+|--------|--------|
+| `SubagentStart` / `SubagentStop` | 서브에이전트 시작/종료 |
+| `TaskCreated` / `TaskCompleted` | 백그라운드 태스크 |
+| `WorktreeCreate` / `WorktreeRemove` | git worktree 생성/제거 |
+
+**비동기 / 기타**
+| 이벤트 | 타이밍 |
+|--------|--------|
+| `PreCompact` / `PostCompact` | 컨텍스트 압축 전/후 |
+| `Notification` | 알림 발생 (`permission_prompt`, `idle_prompt` 등) |
+| `FileChanged` | 감시 중인 파일이 디스크에서 변경 |
+| `CwdChanged` | 작업 디렉토리 변경 |
+| `TeammateIdle` | 팀원 에이전트 idle 상태 |
+
+### Hook Handler 종류 (5가지)
+
+Hook은 단순 셸 명령만이 아닙니다. 다음 모두 가능:
+
+| Type | 용도 |
+|------|------|
+| **Shell command** | 가장 일반적 (포맷터, 린터 등) |
+| **HTTP endpoint** | 외부 서비스에 POST (Slack 알림, 로깅 등) |
+| **MCP tool** | 등록된 MCP 도구 호출 |
+| **Prompt** | Claude에게 추가 프롬프트 주입 |
+| **Agent** | 서브에이전트 실행 |
 
 ### Hook 설정 예시 (`.claude/settings.json`)
 ```json
@@ -248,10 +371,32 @@ claude mcp list    # 설치된 MCP 서버 확인
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-rm.sh"
+          }
+        ]
+      }
     ]
   }
 }
 ```
+
+### Hook 위치 (4단계)
+
+| 위치 | 적용 범위 |
+|------|---------|
+| 관리형 (organization) | 조직 전체 |
+| `~/.claude/settings.json` | 본인 (모든 프로젝트) |
+| `.claude/settings.json` | 프로젝트 (팀 공유) |
+| `.claude/settings.local.json` | 프로젝트 (개인) |
+| 스킬 frontmatter `hooks:` | 스킬 라이프사이클 한정 |
+| 서브에이전트 frontmatter `hooks:` | 해당 서브에이전트 한정 |
 
 ### CLAUDE.md 지침 vs Hook
 
@@ -266,6 +411,7 @@ claude mcp list    # 설치된 MCP 서버 확인
 
 - [ ] `/hooks`로 현재 설정된 Hook 확인
 - [ ] 알림 Hook 설정해보기 (Claude가 완료/입력 필요 시 알림)
+- [ ] 위험 명령 차단 Hook 작성해보기 (`PreToolUse` + `Bash` matcher)
 
 ---
 
@@ -277,10 +423,16 @@ claude mcp list    # 설치된 MCP 서버 확인
 |------|---------|-------------|
 | **CLAUDE.md** | 세션 시작 | 모든 요청 (항상) |
 | **Rules** (`paths:` 있음) | 파일 매칭 시 | 해당 파일 작업 시만 |
-| **Skill** | 사용 시 | 낮음 (설명만 상시 로드) |
-| **MCP** | 세션 시작 | 모든 요청 (도구 정의) |
-| **Subagent** | 생성 시 | 메인에서 격리 |
-| **Hook** | 트리거 시 | 0 |
+| **Skill (description)** | 세션 시작 | 낮음 (설명만 상시, 1,536자 캡) |
+| **Skill (body)** | 호출 시 | 호출된 후 세션 끝까지 유지 |
+| **MCP** | 세션 시작 | 모든 요청 (도구 정의 전체) |
+| **Subagent** | 생성 시 | 메인에서 격리 (요약만 반환) |
+| **Hook** | 트리거 시 | 0 (Claude 컨텍스트 외부에서 실행) |
+
+> **압축(compaction) 시 토큰 예산**:
+> - 가장 최근 호출된 스킬은 다시 첨부 (각 5,000 토큰까지)
+> - 재첨부 합산 25,000 토큰 한도 (오래된 스킬은 떨어짐)
+> - CLAUDE.md는 디스크에서 다시 로드되므로 보존됨
 
 ### 컨텍스트 최적화 전략
 
