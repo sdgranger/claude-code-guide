@@ -40,35 +40,65 @@ Phase 6  고급 기능
 - [ ] `claude` — 대화형 세션 시작
 - [ ] `claude "질문"` — 초기 프롬프트와 함께 시작
 - [ ] `claude -c` — 가장 최근 대화 이어서 계속
-- [ ] `claude -r "세션명"` — 특정 세션 이어서 계속
-- [ ] `claude -p "질문"` — 비대화형 모드 (결과만 출력, CI/CD에 유용)
+- [ ] `claude -r "세션명" "질문"` — 특정 세션(ID/이름)을 이어서 시작 + 초기 프롬프트
+- [ ] `claude -p "질문"` — 비대화형(headless) 모드 (결과만 출력, CI/CD에 유용)
 - [ ] `cat file | claude -p "분석해줘"` — 파이프로 입력 전달
+- [ ] `claude update` — 최신 버전으로 업데이트
+- [ ] `claude install [version|stable|latest]` — 특정 버전 설치/재설치
+- [ ] `claude auth login` / `auth logout` / `auth status` — 계정 인증 관리
+- [ ] `claude agents` — 설정된 서브에이전트 목록 확인
+- [ ] `claude setup-token` — CI/스크립트용 장기 OAuth 토큰 생성
+- [ ] `claude --bare -p "질문"` — 최소 모드 (hooks/skills/MCP 등 자동 발견 생략, 빠른 실행)
 
 ### 1.2 세션 내 슬래시 명령어
 - [ ] `/help` — 사용 가능한 명령어 확인
-- [ ] `/clear` — 대화 초기화 (새 작업 시작 시)
+- [ ] `/clear` — 대화 초기화 (새 작업 시작 시). aliases: `/reset`, `/new`
 - [ ] `/compact` — 컨텍스트 압축 (긴 작업 중 메모리 절약)
 - [ ] `/compact 최근 파일 변경 내용에 집중` — 압축 시 유지할 내용 지정
 - [ ] `/model` — 모델 전환 (sonnet, opus, haiku)
-- [ ] `/cost` — 현재 세션 토큰 사용량/비용 확인
-- [ ] `/config` — 설정 메뉴
+- [ ] `/usage` — 세션 비용/사용량/통계 (`/cost`, `/stats`는 alias)
+- [ ] `/config` — 설정 메뉴 (alias: `/settings`)
 - [ ] `/ide` — IDE 연결
 - [ ] `/memory` — 자동 메모리 확인/편집
 - [ ] `/init` — 프로젝트용 CLAUDE.md 자동 생성
 - [ ] `/rename` — 현재 세션 이름 지정 (나중에 `-r`로 이어서 가능)
 - [ ] `/btw` — 사이드 질문 (현재 컨텍스트에 영향 안 줌)
 - [ ] `/context` — 컨텍스트 사용 현황 확인
+- [ ] `/resume` — 세션 ID/이름으로 재개 (alias: `/continue`)
+- [ ] `/rewind` — 코드/대화를 이전 시점으로 되돌리기 (aliases: `/checkpoint`, `/undo`)
+- [ ] `/plan [설명]` — 즉시 plan 모드 진입 (선택적으로 작업 내용 전달)
+- [ ] `/effort [low|medium|high|xhigh|max|auto]` — 모델 노력 수준 조정
+- [ ] `/skills` — 사용 가능한 스킬 목록
+- [ ] `/agents` — 서브에이전트 관리
+- [ ] `/permissions` — 권한 규칙 관리 (alias: `/allowed-tools`)
+- [ ] `/hooks` — Hook 설정 확인
+- [ ] `/mcp` — MCP 서버 연결 관리
+- [ ] `/diff` — 미커밋 변경 + 턴별 diff 뷰어
+- [ ] `/doctor` — 설치/설정 진단 (`f` 키로 자동 수정)
+- [ ] `/review [PR]` — PR 로컬 리뷰
+- [ ] `/security-review` — 현재 브랜치 변경사항 보안 분석
+- [ ] `/recap` — 현재 세션 한 줄 요약
+- [ ] `/insights` — 세션 분석 리포트 생성
+- [ ] `/tasks` — 백그라운드 작업 목록 (alias: `/bashes`)
+- [ ] `/statusline` — 상태바 커스터마이징
+- [ ] `/copy [N]` — 마지막(또는 N번째) 응답 클립보드 복사
 
 ### 1.3 키보드 단축키
-- [ ] `Ctrl+C` — 현재 생성 중단
+- [ ] `Ctrl+C` — 현재 입력 또는 생성 중단
 - [ ] `Ctrl+D` — 세션 종료
-- [ ] `Ctrl+O` — Thinking(사고 과정) 보기/숨기기
-- [ ] `Ctrl+G` — 프롬프트를 텍스트 에디터에서 편집
-- [ ] `Esc` + `Esc` — 체크포인트/되돌리기 메뉴
-- [ ] `Shift+Tab` — 권한 모드 순환 전환
+- [ ] `Ctrl+O` — Transcript 뷰어 토글 (사고 과정/도구 사용 상세)
+- [ ] `Ctrl+G` — 프롬프트를 기본 텍스트 에디터에서 편집
+- [ ] `Esc` + `Esc` — 이전 시점으로 되감기/대화 요약 (rewind)
+- [ ] `Shift+Tab` — 권한 모드 순환 (`default` → `acceptEdits` → `plan` → 활성화된 모드)
 - [ ] `Option+P` / `Alt+P` — 모델 빠른 전환
 - [ ] `Option+T` / `Alt+T` — Extended Thinking 토글
 - [ ] `\ + Enter` — 여러 줄 입력
+- [ ] `Ctrl+B` — Bash 명령/에이전트를 백그라운드로 보내기 (tmux는 두 번)
+- [ ] `Ctrl+T` — 태스크 리스트 보기/숨기기
+- [ ] `Ctrl+R` — 명령어 히스토리 역방향 검색
+- [ ] `Ctrl+L` — 입력란 비우고 화면 다시 그리기 (대화는 유지)
+- [ ] `Ctrl+X Ctrl+K` — 모든 백그라운드 에이전트 종료 (3초 내 두 번 누르기)
+- [ ] `Option+O` / `Alt+O` — Fast 모드 토글
 
 ### 1.4 빠른 입력
 - [ ] `@파일명` — 파일/폴더 참조 (자동완성)
@@ -139,15 +169,21 @@ Phase 6  고급 기능
 ## Phase 3: 권한 및 보안 설정
 
 ### 3.1 권한 모드
-| 모드 | 동작 | 사용 시나리오 |
-|------|------|-------------|
-| `default` | 매번 승인 요청 | 안전한 기본값 |
-| `acceptEdits` | 파일 편집 자동 승인 | 코딩 작업 중 |
-| `plan` | 읽기 전용 분석 | 코드 분석/리뷰 |
-| `bypassPermissions` | 모든 승인 생략 | 신뢰할 수 있는 환경 |
+| 모드 | 자동 허용 범위 | 사용 시나리오 |
+|------|-----------------|-------------|
+| `default` | 사전 승인된 도구만 | 안전한 기본값 |
+| `acceptEdits` | 읽기 + 파일 편집 + 일반 fs 명령(`mkdir`,`mv`,`cp` 등) | 코딩 작업 중 (편집 자동 승인) |
+| `plan` | 읽기 전용 | 코드 탐색/리뷰 (변경 없이 계획만) |
+| `auto` | 모든 작업 + 백그라운드 안전 분류기 | 장시간 작업, 프롬프트 피로 감소 |
+| `dontAsk` | 사전 승인된 도구만 (그 외는 자동 거부) | 잠긴 CI/스크립트 (완전 비대화형) |
+| `bypassPermissions` | 보호 경로 외 전부 | 격리된 컨테이너/VM에서만 사용 |
+
+> `auto` 모드는 Sonnet 4.6/Opus 4.6/Opus 4.7에서만 사용 가능 (Haiku 미지원). 분류기가 3회 연속/누적 20회 차단하면 자동으로 default로 폴백.
+> 어떤 모드든 [protected paths](https://code.claude.com/docs/en/permission-modes#protected-paths) 쓰기는 자동 승인되지 않음.
 
 - [ ] `Shift+Tab`으로 모드 전환 해보기
 - [ ] `/permissions` 명령어로 현재 설정 확인
+- [ ] `claude --permission-mode plan` 으로 시작해보기
 
 ### 3.2 권한 규칙 설정
 `.claude/settings.json`:
@@ -199,8 +235,11 @@ Phase 6  고급 기능
 ### 4.3 Git 연동
 - [ ] Claude에게 커밋 요청: "commit"
 - [ ] Claude에게 PR 생성 요청: "PR 만들어줘"
-- [ ] `claude --from-pr 123` — PR 기반으로 세션 시작
-- [ ] worktree 사용: `claude --worktree feature-name` (병렬 작업)
+- [ ] `claude --from-pr 123` — PR(GitHub/GitLab/Bitbucket URL 또는 번호) 기반으로 세션 시작
+- [ ] worktree 사용: `claude -w feature-name` 또는 `--worktree` (병렬 작업, `<repo>/.claude/worktrees/<name>`에 생성)
+- [ ] `/diff` — 미커밋 변경사항 + 턴별 diff 인터랙티브 뷰어
+- [ ] `/review` 또는 `/security-review` — PR/현재 브랜치 변경 리뷰
+- [ ] `/ultrareview` — 클라우드 기반 다중 에이전트 심층 코드 리뷰
 
 ### 4.4 비용 최적화
 | 전략 | 절감 효과 |
@@ -210,8 +249,8 @@ Phase 6  고급 기능
 | CLAUDE.md 200줄 이내 유지 | 20-30% |
 | 연관 없는 작업은 별도 세션 | 30-40% |
 
-- [ ] `/cost` 로 비용 확인해보기
-- [ ] `--max-budget-usd 10.00` 옵션으로 예산 제한 설정해보기
+- [ ] `/usage` (구 `/cost`) 로 비용 확인해보기
+- [ ] `claude -p --max-budget-usd 10.00 "..."` 옵션으로 예산 제한 설정해보기 (print 모드 전용)
 
 ### 4.5 심화 학습 체크
 - [ ] [워크플로우](claude-code-workflows.md) 1장: 새 코드베이스 이해하기 패턴 실습
@@ -230,12 +269,18 @@ Phase 6  고급 기능
 > **심화**: [Deep Dive 2. 확장하기](claude-code-extensions.md) — 6가지 확장 기능 비교, 선택 가이드, 컨텍스트 비용
 
 ### 5.1 커스텀 스킬 (Slash Commands)
+
+> **2026 변경**: `.claude/commands/`(구 Custom Commands)는 **Skills로 통합**되었습니다.
+> `.claude/commands/deploy.md` 와 `.claude/skills/deploy/SKILL.md` 는 모두 `/deploy` 로 동작.
+> 기존 `commands/` 파일은 그대로 동작하며, Skills는 추가 기능(보조 파일, 자동 호출, frontmatter 옵션) 제공.
+
 `.claude/skills/deploy/SKILL.md`:
 ```yaml
 ---
 name: deploy
 description: 배포 프로세스 실행
 argument-hint: [environment]
+disable-model-invocation: true   # 사용자가 직접 호출할 때만 (자동 호출 차단)
 ---
 $ARGUMENTS 환경에 배포합니다.
 1. 테스트 실행
@@ -243,8 +288,32 @@ $ARGUMENTS 환경에 배포합니다.
 3. 배포 스크립트 실행
 ```
 
+**주요 frontmatter 필드** (전체 [공식 docs](https://code.claude.com/docs/en/skills#frontmatter-reference) 참고):
+
+| 필드 | 용도 |
+|------|------|
+| `name` | 슬래시 명령어 이름 (생략 시 디렉토리 이름 사용) |
+| `description` | 자동 호출 판단용 설명 (1,536자 캡) |
+| `argument-hint` | 자동완성 시 표시할 인수 힌트 |
+| `arguments` | 명명 인수 (`$이름` 치환) |
+| `disable-model-invocation` | `true` 시 자동 호출 차단 (`/deploy`처럼 사용자가 트리거) |
+| `user-invocable` | `false` 시 `/` 메뉴에서 숨김 (백그라운드 지식용) |
+| `allowed-tools` | 권한 없이 사용 가능한 도구 |
+| `model` / `effort` | 스킬 실행 중 모델/노력 수준 오버라이드 |
+| `context: fork` | 서브에이전트로 격리 실행 |
+| `paths` | glob 패턴과 일치하는 파일 작업 시에만 자동 로드 |
+| `hooks` | 스킬 라이프사이클에 한정된 훅 |
+
+**번들 스킬** (Claude Code 내장, 별도 설치 없이 사용 가능):
+- `/simplify [focus]` — 변경된 파일을 3개 에이전트가 병렬 리뷰 후 수정
+- `/batch <지시>` — 대규모 변경을 5~30개 단위로 분해해 병렬 실행 (worktree + PR)
+- `/debug [설명]` — 디버그 로깅 활성화 + 세션 로그 분석
+- `/loop [interval] [prompt]` — 프롬프트를 주기적으로 반복 실행
+- `/claude-api [migrate|managed-agents-onboard]` — Claude API/Managed Agents 레퍼런스 로드
+
 - [ ] `.claude/skills/` 디렉토리에 프로젝트 맞춤 스킬 생성
 - [ ] `/deploy staging` 처럼 인수와 함께 실행해보기
+- [ ] `/skills` 명령으로 사용 가능한 스킬 목록 확인 (`t` 키로 토큰 정렬)
 
 ### 5.2 커스텀 서브에이전트
 `.claude/agents/code-reviewer.md`:
@@ -288,10 +357,20 @@ model: haiku
 
 | Hook 이벤트 | 타이밍 | 활용 |
 |-------------|--------|------|
+| `SessionStart` | 세션 시작/재개 시 | 환경 설정, 컨텍스트 주입 |
+| `SessionEnd` | 세션 종료 시 | 로그 저장, 정리 |
+| `UserPromptSubmit` | 사용자 입력 제출 직후 | 프롬프트 검증/변환 |
 | `PreToolUse` | 도구 실행 전 | 위험 명령 차단 |
-| `PostToolUse` | 도구 실행 후 | 자동 포맷팅 |
-| `Stop` | 작업 완료 시 | 결과 검증 |
-| `Notification` | 입력 필요 시 | 데스크톱 알림 |
+| `PostToolUse` | 도구 실행 성공 후 | 자동 포맷팅 |
+| `PostToolUseFailure` | 도구 실행 실패 후 | 에러 처리/복구 |
+| `Stop` | 턴 정상 완료 시 | 결과 검증 |
+| `StopFailure` | API 에러로 턴 종료 시 | 에러 로깅 |
+| `SubagentStop` | 서브에이전트 종료 시 | 서브에이전트별 후처리 |
+| `FileChanged` | 감시 중인 파일이 디스크에서 변경 시 | 자동 재실행/검증 |
+| `Notification` | 알림 발생 시 | 데스크톱 알림 |
+| `PreCompact` / `PostCompact` | 컨텍스트 압축 전/후 | 압축 가이드 |
+
+> Hook handler는 셸 명령, HTTP 엔드포인트, MCP 도구, 프롬프트, 에이전트 모두 가능.
 
 - [ ] 파일 저장 후 자동 포맷팅 Hook 설정
 - [ ] `/hooks` 명령어로 설정된 Hook 확인
@@ -308,23 +387,26 @@ model: haiku
 ## Phase 6: 고급 기능
 
 ### 6.1 MCP (Model Context Protocol) 서버
-외부 도구/서비스와 Claude를 연결합니다.
+외부 도구/서비스와 Claude를 연결합니다. 3가지 전송 방식: `http`, `sse`, `stdio`.
 
 ```bash
-# GitHub 연동
+# 원격 HTTP 서버 (GitHub, Notion 등)
 claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+claude mcp add --transport http notion https://mcp.notion.com/mcp
 
-# 데이터베이스 연동
+# 원격 SSE 서버 (Asana 등)
+claude mcp add --transport sse asana https://mcp.asana.com/sse
+
+# 로컬 stdio 서버 (DB, 파일시스템 등)
 claude mcp add --transport stdio db -- npx @bytebase/dbhub --dsn "postgresql://..."
-
-# Sentry 에러 모니터링
-claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 ```
 
-- [ ] MCP 개념 이해: 외부 서비스의 도구를 Claude에 제공
+- [ ] MCP 개념 이해: 외부 서비스의 도구를 Claude에 제공 (modelcontextprotocol.io)
 - [ ] `claude mcp list` — 설치된 MCP 서버 확인
+- [ ] `/mcp` — 세션 내에서 MCP 연결/OAuth 관리
 - [ ] 필요한 MCP 서버 하나 설치해보기
-- [ ] scope 이해: `--scope local` (개인/프로젝트), `--scope project` (팀 공유), `--scope user` (모든 프로젝트)
+- [ ] scope 이해: `--scope local` (개인 기본), `--scope project` (팀 공유, `.mcp.json`), `--scope user` (개인 전역)
+- [ ] MCP 도구는 `mcp__<server>__<tool>` 이름 패턴 (Hook matcher에서 활용)
 
 ### 6.2 Headless 모드 (CI/CD 연동)
 ```bash
@@ -352,8 +434,9 @@ claude -p "스테이징된 변경사항에 문제 없는지 확인" \
 ```
 
 - [ ] `Option+T` 로 Thinking 토글해보기
-- [ ] `Ctrl+O` 로 사고 과정 확인해보기
-- [ ] `/effort` 레벨 조절해보기 (low/medium/high/max)
+- [ ] `Ctrl+O` 로 사고 과정(Transcript 뷰어) 확인해보기
+- [ ] `/effort` 레벨 조절해보기 (`low`/`medium`/`high`/`xhigh`/`max`/`auto`) — 모델별로 사용 가능 레벨 다름, `max`는 세션 한정
+- [ ] `claude --effort high "..."` 로 시작 시 노력 레벨 지정
 
 ### 6.4 프로젝트 디렉토리 구조 정리
 ```
@@ -402,8 +485,10 @@ my-project/
 | 코드 분석/이해 | sonnet | plan |
 | 버그 수정 | sonnet | acceptEdits |
 | 복잡한 설계 | opus | plan → default |
-| 대량 리팩토링 | sonnet | acceptEdits |
+| 대량 리팩토링 | sonnet | acceptEdits 또는 auto |
 | 빠른 수정 | haiku | acceptEdits |
+| 장시간 자율 작업 | sonnet/opus | auto (안전 분류기 적용) |
+| CI/스크립트 | sonnet | dontAsk + 명시적 allow rules |
 
 ### 문제 해결
 | 상황 | 해결 |
