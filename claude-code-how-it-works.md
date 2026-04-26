@@ -38,11 +38,11 @@ Claude Code는 단순한 챗봇이 아닌 **에이전트**입니다.
 
 Claude Code는 여러 모델을 사용할 수 있습니다.
 
-| 모델 | 특징 | 사용 시나리오 |
-|------|------|-------------|
-| **Sonnet** | 빠르고 균형잡힌 성능 | 대부분의 코딩 작업 |
-| **Opus** | 강력한 추론, 복잡한 문제 해결 | 아키텍처 결정, 어려운 버그 |
-| **Haiku** | 빠르고 경제적 | 간단한 작업, subagent |
+| 모델 | 모델 ID 예시 | 특징 | 사용 시나리오 |
+|------|-------------|------|-------------|
+| **Sonnet** | `claude-sonnet-4-6` | 빠르고 균형잡힌 성능 | 대부분의 코딩 작업 (기본 추천) |
+| **Opus** | `claude-opus-4-7` | 강력한 추론, 복잡한 문제 해결 | 아키텍처 결정, 어려운 버그, plan |
+| **Haiku** | `claude-haiku-4-5-20251001` | 빠르고 경제적 | 간단한 작업, subagent, 코스트 최적화 |
 
 ```bash
 # 세션 중 모델 전환
@@ -174,15 +174,21 @@ claude --model opus
 
 ### 권한 모드
 
-| 모드 | 동작 | 전환 |
-|------|------|------|
-| **기본값** | 파일 편집/명령 전에 승인 요청 | `Shift+Tab` |
-| **Auto-Accept Edits** | 파일 편집 자동, 명령은 요청 | `Shift+Tab` |
-| **Plan Mode** | 읽기 전용 (분석만) | `Shift+Tab` |
+| 모드 | 동작 | 전환/시작 |
+|------|------|----------|
+| **default** | 모든 도구 사용 전 승인 요청 | `Shift+Tab` |
+| **acceptEdits** | 파일 편집 + 일반 fs 명령(`mkdir`/`mv`/`cp` 등) 자동, 그 외 요청 | `Shift+Tab` |
+| **plan** | 읽기 전용 (분석/계획만, 변경 없음) | `Shift+Tab` 또는 `/plan` |
+| **auto** | 백그라운드 안전 분류기로 모든 작업 자동 진행 | 옵트인 후 `Shift+Tab` 또는 `--permission-mode auto` |
+| **dontAsk** | 사전 승인된 도구만 허용, 그 외는 자동 거부 (CI용) | `--permission-mode dontAsk` |
+| **bypassPermissions** | 보호 경로 외 모든 검사 생략 (격리 환경용!) | `--dangerously-skip-permissions` |
 
 ```
-기본값 → (Shift+Tab) → Auto-Accept → (Shift+Tab) → Plan Mode → (Shift+Tab) → 기본값
+기본 사이클: default → acceptEdits → plan → (활성화된 모드들) → default
 ```
+
+> **`auto` 모드**는 Sonnet 4.6/Opus 4.6/Opus 4.7만 지원 (Haiku 미지원). 분류기가 3회 연속/누적 20회 차단하면 default로 폴백.
+> **어떤 모드든** [protected paths](https://code.claude.com/docs/en/permission-modes#protected-paths) 쓰기는 자동 승인되지 않음 (`.claude/`, `~/.claude/`, repo의 git 메타 등).
 
 ### 권한 허용 목록 (`.claude/settings.json`)
 ```json

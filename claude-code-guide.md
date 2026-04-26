@@ -37,12 +37,12 @@ Phase 6  고급 기능
 > **심화**: [Deep Dive 1. 작동 방식](claude-code-how-it-works.md) — 에이전트 루프, 모델, 내장 도구, 컨텍스트 윈도우
 
 ### 1.1 CLI 기본 명령어
-- [x] `claude` — 대화형 세션 시작
-- [x] `claude "질문"` — 초기 프롬프트와 함께 시작
-- [x] `claude -c` — 가장 최근 대화 이어서 계속
-- [x] `claude -r "세션명" "질문"` — 특정 세션(ID/이름)을 이어서 시작 + 초기 프롬프트
-- [x] `claude -p "질문"` — 비대화형(headless) 모드 (결과만 출력, CI/CD에 유용)
-- [x] `cat file | claude -p "분석해줘"` — 파이프로 입력 전달
+- [ ] `claude` — 대화형 세션 시작
+- [ ] `claude "질문"` — 초기 프롬프트와 함께 시작
+- [ ] `claude -c` — 가장 최근 대화 이어서 계속
+- [ ] `claude -r "세션명" "질문"` — 특정 세션(ID/이름)을 이어서 시작 + 초기 프롬프트
+- [ ] `claude -p "질문"` — 비대화형(headless) 모드 (결과만 출력, CI/CD에 유용)
+- [ ] `cat file | claude -p "분석해줘"` — 파이프로 입력 전달
 - [ ] `claude update` — 최신 버전으로 업데이트
 - [ ] `claude install [version|stable|latest]` — 특정 버전 설치/재설치
 - [ ] `claude auth login` / `auth logout` / `auth status` — 계정 인증 관리
@@ -51,19 +51,19 @@ Phase 6  고급 기능
 - [ ] `claude --bare -p "질문"` — 최소 모드 (hooks/skills/MCP 등 자동 발견 생략, 빠른 실행)
 
 ### 1.2 세션 내 슬래시 명령어
-- [x] `/help` — 사용 가능한 명령어 확인
-- [x] `/clear` — 대화 초기화 (새 작업 시작 시). aliases: `/reset`, `/new`
-- [x] `/compact` — 컨텍스트 압축 (긴 작업 중 메모리 절약)
-- [x] `/compact 최근 파일 변경 내용에 집중` — 압축 시 유지할 내용 지정
-- [x] `/model` — 모델 전환 (sonnet, opus, haiku)
-- [x] `/usage` — 세션 비용/사용량/통계 (`/cost`, `/stats`는 alias)
-- [x] `/config` — 설정 메뉴 (alias: `/settings`)
-- [x] `/ide` — IDE 연결
-- [x] `/memory` — 자동 메모리 확인/편집
-- [x] `/init` — 프로젝트용 CLAUDE.md 자동 생성
-- [x] `/rename` — 현재 세션 이름 지정 (나중에 `-r`로 이어서 가능)
-- [x] `/btw` — 사이드 질문 (현재 컨텍스트에 영향 안 줌)
-- [x] `/context` — 컨텍스트 사용 현황 확인
+- [ ] `/help` — 사용 가능한 명령어 확인
+- [ ] `/clear` — 대화 초기화 (새 작업 시작 시). aliases: `/reset`, `/new`
+- [ ] `/compact` — 컨텍스트 압축 (긴 작업 중 메모리 절약)
+- [ ] `/compact 최근 파일 변경 내용에 집중` — 압축 시 유지할 내용 지정
+- [ ] `/model` — 모델 전환 (sonnet, opus, haiku)
+- [ ] `/usage` — 세션 비용/사용량/통계 (`/cost`, `/stats`는 alias)
+- [ ] `/config` — 설정 메뉴 (alias: `/settings`)
+- [ ] `/ide` — IDE 연결
+- [ ] `/memory` — 자동 메모리 확인/편집
+- [ ] `/init` — 프로젝트용 CLAUDE.md 자동 생성
+- [ ] `/rename` — 현재 세션 이름 지정 (나중에 `-r`로 이어서 가능)
+- [ ] `/btw` — 사이드 질문 (현재 컨텍스트에 영향 안 줌)
+- [ ] `/context` — 컨텍스트 사용 현황 확인
 - [ ] `/resume` — 세션 ID/이름으로 재개 (alias: `/continue`)
 - [ ] `/rewind` — 코드/대화를 이전 시점으로 되돌리기 (aliases: `/checkpoint`, `/undo`)
 - [ ] `/plan [설명]` — 즉시 plan 모드 진입 (선택적으로 작업 내용 전달)
@@ -84,15 +84,15 @@ Phase 6  고급 기능
 - [ ] `/copy [N]` — 마지막(또는 N번째) 응답 클립보드 복사
 
 ### 1.3 키보드 단축키
-- [x] `Ctrl+C` — 현재 입력 또는 생성 중단
-- [x] `Ctrl+D` — 세션 종료
-- [x] `Ctrl+O` — Transcript 뷰어 토글 (사고 과정/도구 사용 상세)
-- [x] `Ctrl+G` — 프롬프트를 기본 텍스트 에디터에서 편집
-- [x] `Esc` + `Esc` — 이전 시점으로 되감기/대화 요약 (rewind)
-- [x] `Shift+Tab` — 권한 모드 순환 (`default` → `acceptEdits` → `plan` → 활성화된 모드)
-- [x] `Option+P` / `Alt+P` — 모델 빠른 전환
-- [x] `Option+T` / `Alt+T` — Extended Thinking 토글
-- [x] `\ + Enter` — 여러 줄 입력
+- [ ] `Ctrl+C` — 현재 입력 또는 생성 중단
+- [ ] `Ctrl+D` — 세션 종료
+- [ ] `Ctrl+O` — Transcript 뷰어 토글 (사고 과정/도구 사용 상세)
+- [ ] `Ctrl+G` — 프롬프트를 기본 텍스트 에디터에서 편집
+- [ ] `Esc` + `Esc` — 이전 시점으로 되감기/대화 요약 (rewind)
+- [ ] `Shift+Tab` — 권한 모드 순환 (`default` → `acceptEdits` → `plan` → 활성화된 모드)
+- [ ] `Option+P` / `Alt+P` — 모델 빠른 전환
+- [ ] `Option+T` / `Alt+T` — Extended Thinking 토글
+- [ ] `\ + Enter` — 여러 줄 입력
 - [ ] `Ctrl+B` — Bash 명령/에이전트를 백그라운드로 보내기 (tmux는 두 번)
 - [ ] `Ctrl+T` — 태스크 리스트 보기/숨기기
 - [ ] `Ctrl+R` — 명령어 히스토리 역방향 검색
@@ -101,16 +101,16 @@ Phase 6  고급 기능
 - [ ] `Option+O` / `Alt+O` — Fast 모드 토글
 
 ### 1.4 빠른 입력
-- [x] `@파일명` — 파일/폴더 참조 (자동완성)
-- [x] `!명령어` — Bash 직접 실행 모드
-- [x] `/명령어` — 슬래시 명령어/스킬 실행
-- [x] 이미지 붙여넣기 (`Ctrl+V` / `Cmd+V`) — 스크린샷 분석
+- [ ] `@파일명` — 파일/폴더 참조 (자동완성)
+- [ ] `!명령어` — Bash 직접 실행 모드
+- [ ] `/명령어` — 슬래시 명령어/스킬 실행
+- [ ] 이미지 붙여넣기 (`Ctrl+V` / `Cmd+V`) — 스크린샷 분석
 
 ### 1.5 심화 학습 체크
-- [x] [작동 방식](claude-code-how-it-works.md) 1장: 에이전트 루프 3단계 (수집→수행→검증) 이해
-- [x] [작동 방식](claude-code-how-it-works.md) 2장: 모델별 차이 (Sonnet/Opus/Haiku) 이해
-- [x] [작동 방식](claude-code-how-it-works.md) 3장: 5가지 도구 범주 (파일/검색/실행/웹/코드 인텔리전스) 이해
-- [x] [작동 방식](claude-code-how-it-works.md) 6장: 컨텍스트 윈도우가 왜 가장 중요한 리소스인지 이해
+- [ ] [작동 방식](claude-code-how-it-works.md) 1장: 에이전트 루프 3단계 (수집→수행→검증) 이해
+- [ ] [작동 방식](claude-code-how-it-works.md) 2장: 모델별 차이 (Sonnet/Opus/Haiku) 이해
+- [ ] [작동 방식](claude-code-how-it-works.md) 3장: 5가지 도구 범주 (파일/검색/실행/웹/코드 인텔리전스) 이해
+- [ ] [작동 방식](claude-code-how-it-works.md) 6장: 컨텍스트 윈도우가 왜 가장 중요한 리소스인지 이해
 
 ---
 
